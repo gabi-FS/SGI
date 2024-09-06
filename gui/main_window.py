@@ -4,8 +4,8 @@ from .drawing_area import DrawingArea
 from .menu_box import MenuBox
 
 # Descobrir onde consts deveriam ir
-WINDOW_WIDTH = 1200
-WINDOW_HEIGHT = 600
+WINDOW_WIDTH = 1125  # 1/3 Menu, 2/3 DrawingArea
+WINDOW_HEIGHT = 750
 
 
 class MainWindow(Gtk.Window):
@@ -13,6 +13,7 @@ class MainWindow(Gtk.Window):
         Gtk.Window.__init__(self, title="Sistema Gráfico Interativo")
         self.set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.set_position(Gtk.WindowPosition.CENTER)
+        self.set_resizable(False)
 
         grid = Gtk.Grid()
         self.add(grid)
