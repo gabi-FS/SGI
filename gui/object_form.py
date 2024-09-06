@@ -14,6 +14,7 @@ class ObjectForm():
         self.submit_button.connect("clicked", self.on_add)
 
         menu_box.add_element(Gtk.Label(label="Criação de objeto"))
+        menu_box.add_element(Gtk.HSeparator())
         menu_box.add_element(self.object_radio.element)
         menu_box.add_element(self.create_form_label(
             "Nome do objeto (Opcional):"))

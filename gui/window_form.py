@@ -4,10 +4,11 @@ from gi.repository import Gtk
 class WindowForm():
     def __init__(self, menu_box):
         title_label = Gtk.Label()
-        title_label.set_markup("<b>Janela</b>")
+        title_label.set_markup("Janela")
         self.zoom_box = ZoomBox()
 
         menu_box.add_element(title_label)
+        menu_box.add_element(Gtk.HSeparator())
         menu_box.add_element(self.zoom_box.element)
         menu_box.add_element(Gtk.HSeparator())
 
