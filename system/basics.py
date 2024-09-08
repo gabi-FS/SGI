@@ -1,12 +1,3 @@
-from enum import Enum
-
-
-class ObjectType(Enum):
-    POINT = 1
-    LINE = 2
-    POLYGON = 3
-
-
 class Point:
     _x: float
     _y: float

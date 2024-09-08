@@ -1,6 +1,11 @@
-from system.basics import ObjectType, Point
-from system.objects import (GraphicObject, LineSegmentObject, PointObject,
-                            WireframeObject)
+from system.basics import Point
+from globals import ObjectType
+from system.objects import (
+    GraphicObject,
+    LineSegmentObject,
+    PointObject,
+    WireframeObject,
+)
 
 
 class Window(GraphicObject):
@@ -24,7 +29,7 @@ class Window(GraphicObject):
         return super().draw(context, viewport_transform)
 
 
-class ViewPort():
+class ViewPort:
     _size: tuple[int, int]
     _window: (
         Window  # talvez não seja o ideal, mas a viewport precisa ter acesso à window
@@ -38,10 +43,14 @@ class ViewPort():
 
     def transform(self, point: Point):
         w_points = self._window.points
-        vp_x = (point.x - w_points[0].x) / \
-            (w_points[1].x - w_points[0].x) * (self._size[0])
-        vp_y = (1 - (point.y - w_points[0].y) /
-                (w_points[1].y - w_points[0].y)) * (self._size[1])
+        vp_x = (
+            (point.x - w_points[0].x)
+            / (w_points[1].x - w_points[0].x)
+            * (self._size[0])
+        )
+        vp_y = (1 - (point.y - w_points[0].y) / (w_points[1].y - w_points[0].y)) * (
+            self._size[1]
+        )
         return Point(vp_x, vp_y)
 
 

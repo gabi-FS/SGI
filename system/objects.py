@@ -1,7 +1,7 @@
-
 from abc import ABC, abstractmethod
 
-from system.basics import ObjectType, Point
+from system.basics import Point
+from globals import ObjectType
 
 
 class GraphicObject(ABC):
