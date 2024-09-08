@@ -25,3 +25,11 @@ class MenuBox():
 
     def add_element(self, new_element):
         self.element.pack_start(new_element, False, True, 0)
+
+    def connect_submit_object(self, function):
+        """A função receberá:
+        1. Input do tipo do objeto
+        2. Input do nome do objeto
+        3. Input das coordenadas
+        """
+        self.object_form.set_on_submit(function)
