@@ -1,0 +1,10 @@
+Exemplos de teste da interface. Basta copiar a lista dos pontos e colar no campo de coordenadas:
+
+Linha:
+[(300.0, 300.0), (800.0, 800.0)]
+
+Triângulo:
+[(100.0, 200.0), (200.0, 200.0), (200.0, 100.0)]
+
+Quadrado:
+[(100.0, 400.0), (100.0, 600.0), (200.0, 600.0), (200.0, 400.0)]
