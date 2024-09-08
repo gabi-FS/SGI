@@ -69,12 +69,12 @@ class DisplayFile:
         new_input = [Point(*x) for x in input]
         print(object_type)
         print(type(object_type))
-        match object_type.value:
-            case ObjectType.POINT.value:
+        match object_type:
+            case ObjectType.POINT:
                 obj = PointObject(name, new_input, color)
-            case ObjectType.LINE.value:
+            case ObjectType.LINE:
                 obj = LineSegmentObject(name, new_input, color)
-            case ObjectType.POLYGON.value:
+            case ObjectType.POLYGON:
                 obj = WireframeObject(name, new_input, color)
         self._objects.append(obj)
 
