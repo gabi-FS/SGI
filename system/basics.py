@@ -23,3 +23,6 @@ class Point:
 
     def __iter__(self):
         return iter([self._x, self._y])
+
+    def __str__(self) -> str:
+        return f"Point: x={self._x}, y={self._y}"

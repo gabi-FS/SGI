@@ -11,7 +11,7 @@ from system.objects import (
 class Window(GraphicObject):
     _points: list[Point]  # no caso da Window, só tem 2 pontos da diagonal:
     #                       o canto inferior esquerdo e o canto superior direito
-    _size: tuple[int, int]
+
     _name: str
     _center: tuple[Point]
     _type: ObjectType
@@ -28,6 +28,23 @@ class Window(GraphicObject):
     def draw(self, context, viewport_transform):
         return super().draw(context, viewport_transform)
 
+    def zoom_in(self):
+        self._points[0] = self._points[0] + Point(2, 2)
+        self._points[1] = self._points[1] - Point(2, 2)
+        print("zoom window")
+        print(self._points[0])
+        print(self._points[1])
+        print()
+        # self._size[0] = self._size[0] + 2
+        # self._size[1] = self._size[1] + 2
+
+    def zoom_out(self):
+        self._points[0] = self._points[0] - Point(2, 2)
+        self._points[1] = self._points[1] + Point(2, 2)
+        print(self._points)
+        # self._size[0] = self._size[0] - 2
+        # self._size[1] = self._size[1] - 2
+
 
 class ViewPort:
     _size: tuple[int, int]
@@ -41,8 +58,15 @@ class ViewPort:
             self._size = size
             self._window = window
 
+    @property
+    def window(self):
+        return self._window
+
     def transform(self, point: Point):
+        print("transform")
+
         w_points = self._window.points
+        print(w_points[0], w_points[1])
         vp_x = (
             (point.x - w_points[0].x)
             / (w_points[1].x - w_points[0].x)
@@ -51,6 +75,7 @@ class ViewPort:
         vp_y = (1 - (point.y - w_points[0].y) / (w_points[1].y - w_points[0].y)) * (
             self._size[1]
         )
+        print(vp_x, vp_y)
         return Point(vp_x, vp_y)
 
 
@@ -84,3 +109,11 @@ class DisplayFile:
 
         for obj in self._objects:
             obj.draw(context, self._view_port.transform)
+
+    def on_zoom_in(self):
+        print("botão zoom in")
+        self._view_port.window.zoom_in()
+
+    def on_zoom_out(self):
+        print("botão zoom out")
+        self._view_port.window.zoom_out()
