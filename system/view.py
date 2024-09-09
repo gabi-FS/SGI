@@ -35,15 +35,11 @@ class Window(GraphicObject):
         print(self._points[0])
         print(self._points[1])
         print()
-        # self._size[0] = self._size[0] + 2
-        # self._size[1] = self._size[1] + 2
 
     def zoom_out(self):
         self._points[0] = self._points[0] - Point(2, 2)
         self._points[1] = self._points[1] + Point(2, 2)
         print(self._points)
-        # self._size[0] = self._size[0] - 2
-        # self._size[1] = self._size[1] - 2
 
 
 class ViewPort:
@@ -72,7 +68,7 @@ class ViewPort:
             / (w_points[1].x - w_points[0].x)
             * (self._size[0])
         )
-        vp_y = (1 - (point.y - w_points[0].y) / (w_points[1].y - w_points[0].y)) * (
+        vp_y = (1 - ((point.y - w_points[0].y) / (w_points[1].y - w_points[0].y))) * (
             self._size[1]
         )
         print(vp_x, vp_y)
