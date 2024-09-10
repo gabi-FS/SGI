@@ -29,6 +29,9 @@ class SGI:
 
         self.main_window.drawing_area.connect_on_draw(
             self.display_file.on_draw)
+        self.main_window.drawing_area.connect_scroll_up_down(
+            self.zoom_in, self.zoom_out)
+
         self.main_window.menu_box.object_form.set_on_submit(self.add_object)
         self.main_window.menu_box.window_form.connect_zoom_buttons(
             self.zoom_in, self.zoom_out)
@@ -38,9 +41,9 @@ class SGI:
     def add_object(self, object_type, name, input):
         """Função executada ao apertar Adicionar objeto"""
         if not name:  # Rever depois
-            name = object_type
+            name = object_type.name
 
-        # Tratar Input -> Por aqui, se necessário separar a lógica..
+        # Tratar Input -> Por aqui, se necessário separar a lógica no futuro..
         try:
             result: List[Tuple[float]] = ast.literal_eval(input)
             if all(
