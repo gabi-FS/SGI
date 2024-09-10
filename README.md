@@ -2,6 +2,7 @@
 
 Sistema Gráfico Interativo para a disciplina INE5420 - Computação Gráfica.
 Feito com GTK e GDK.
+
 Alunas: Gabriela Furtado da Silveira e Samantha Costa de Sousa
 
 ## Como rodar

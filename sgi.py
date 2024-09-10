@@ -53,9 +53,10 @@ class SGI:
             result: List[Tuple[float]] = parse_input(input)
             validate(result, object_type)
 
-            name = name if name else object_type.name
+            name = name if name else object_type.name.title()
+            object_list_name = f"{object_type.name}[{name}]"
             self.display_file.create_object(object_type, name, result)
-            self.main_window.menu_box.object_list.add_item(name)
+            self.main_window.menu_box.object_list.add_item(object_list_name)
             self.main_window.drawing_area.queue_draw()
         except (ValueError, SyntaxError, AttributeError) as e:
             print(f"Erro ao processar a string: {e}")
