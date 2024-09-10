@@ -35,16 +35,16 @@ class SGI:
 
     def connect(self):
         """Faz as conexões entre elementos e ações da tela e funções de suas classes específicas"""
+        drawing_area = self.main_window.drawing_area
+        object_form = self.main_window.menu_box.object_form
+        window_form = self.main_window.menu_box.window_form
 
-        self.main_window.drawing_area.connect_on_draw(
-            self.display_file.on_draw)
-        self.main_window.drawing_area.connect_scroll_up_down(
-            self.zoom_in, self.zoom_out)
+        drawing_area.connect_on_draw(self.display_file.on_draw)
+        drawing_area.connect_scroll_up_down(self.zoom_in, self.zoom_out)
 
-        self.main_window.menu_box.object_form.set_on_submit(self.add_object)
-        self.main_window.menu_box.window_form.connect_zoom_buttons(
-            self.zoom_in, self.zoom_out)
-        self.main_window.menu_box.window_form.connect_panning_buttons(
+        object_form.set_on_submit(self.add_object)
+        window_form.connect_zoom_buttons(self.zoom_in, self.zoom_out)
+        window_form.connect_panning_buttons(
             self.go_up, self.go_left, self.go_right, self.go_down)
 
     def add_object(self, object_type, name, input):
