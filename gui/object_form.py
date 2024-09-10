@@ -1,4 +1,5 @@
 from gi.repository import Gtk
+
 from globals import ObjectType
 
 
@@ -14,9 +15,11 @@ class ObjectForm:
         menu_box.add_element(Gtk.Label(label="Criação de objeto"))
         menu_box.add_element(Gtk.HSeparator())
         menu_box.add_element(self.object_radio.element)
-        menu_box.add_element(self.create_form_label("Nome do objeto (Opcional):"))
+        menu_box.add_element(self.create_form_label(
+            "Nome do objeto (Opcional):"))
         menu_box.add_element(self.name_input)
-        menu_box.add_element(self.create_form_label("Coordenadas (Obrigatório):"))
+        menu_box.add_element(self.create_form_label(
+            "Coordenadas (Obrigatório):"))
         menu_box.add_element(self.coordinate_input)
         menu_box.add_element(self.submit_button)
         menu_box.add_element(Gtk.HSeparator())
@@ -31,17 +34,13 @@ class ObjectForm:
         self.on_submit = function
 
     def on_add(self, _):
-        print(f"Selecionado: {self.object_radio.selected_type}")
-        print(f"Nome: {self.name_input.get_text()}")
-        print(f"Coordenadas: {self.coordinate_input.get_text()}")
-
         if self.on_submit:
             self.on_submit(
                 self.object_radio.selected_type,
                 self.name_input.get_text(),
                 self.coordinate_input.get_text(),
             )
-        self.clear_form()  # Avaliar necessidade
+        self.clear_form()  # TODO: Reavaliar necessidade
 
     def clear_form(self):
         self.name_input.set_text("")
@@ -54,7 +53,8 @@ class ObjectRadio:
         self.selected_type = ObjectType.POINT
         self.buttons = []
 
-        first_button = Gtk.RadioButton.new_with_label_from_widget(None, "Ponto")
+        first_button = Gtk.RadioButton.new_with_label_from_widget(
+            None, "Ponto")
         first_button.connect("toggled", self.on_toggle, self.selected_type)
         self.buttons.append(first_button)
 
@@ -65,7 +65,8 @@ class ObjectRadio:
             self.element.pack_start(button, False, False, 0)
 
     def add_button(self, name, object_type):
-        button = Gtk.RadioButton.new_with_label_from_widget(self.buttons[0], name)
+        button = Gtk.RadioButton.new_with_label_from_widget(
+            self.buttons[0], name)
         button.connect("toggled", self.on_toggle, object_type)
         self.buttons.append(button)
 
