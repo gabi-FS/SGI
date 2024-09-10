@@ -17,7 +17,8 @@ python3 main.py
 
 **Versão 1.1**:
 
-Todas interações requisitadas na entrega são feitas por interface, inputs de teste em `./test_examples`
+Todas interações requisitadas na entrega são feitas por interface, inputs de teste em `./test_examples`.
+
 Possíveis erros de validação são capturados e aparecem no terminal.
 
 **Alternativas para ações implementadas na versão atual:**
