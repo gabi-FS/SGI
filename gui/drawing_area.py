@@ -8,10 +8,6 @@ class DrawingArea():
     _external_on_draw: Função que recebe o context do Cairo
     _scroll_up: Função executada no scroll up
     _scroll_down: Função executada no scroll down
-    _move_up
-    _move_left
-    _move_right
-    _move_down
     """
 
     def __init__(self, grid: Gtk.Grid, viewport_size):
@@ -24,9 +20,6 @@ class DrawingArea():
         self._element.connect("draw", self._on_draw)
         self._element.connect("scroll-event", self._on_scroll)
 
-        # KEY EVENTS: NOT CONFIGURED YET
-        # self._element.connect("key-press-event", self._on_key_press)
-
         grid.attach(self._element, 1, 0, 2, 2)
 
     def connect_on_draw(self, on_draw):
@@ -37,13 +30,6 @@ class DrawingArea():
         ''' Determina as funções para os eventos de scroll '''
         self._scroll_up = scroll_up
         self._scroll_down = scroll_down
-
-    # def connect_movement_keys(self, up, left, right, down):
-    #     """ Determina as funções para as teclas de movimento (setas e wasd)"""
-    #     self._move_up = up
-    #     self._move_left = left
-    #     self._move_right = right
-    #     self._move_down = down
 
     def queue_draw(self):
         """ Força o redesenho da tela """
@@ -62,14 +48,3 @@ class DrawingArea():
             self._scroll_up()
         elif event.direction == Gdk.ScrollDirection.DOWN and self._scroll_down:
             self._scroll_down()
-
-    # def _on_key_press(self, _, event):
-    #     key = Gdk.keyval_name(event.keyval)
-    #     if (key == "w") and self._move_up:
-    #         self._move_up()
-    #     elif (key == "a") and self._move_left:
-    #         self._move_left()
-    #     elif (key == "s") and self._move_down:
-    #         self._move_down()
-    #     elif (key == "d") and self._move_right:
-    #         self._move_right()

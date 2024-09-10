@@ -2,17 +2,36 @@ from gi.repository import Gtk
 
 
 class ObjectList():
-    def __init__(self, menu_box):
-        self.selected_object = None  # Tratar
+    """
+    element: Gtk.ScrolledWindow
+    listbox: Gtk.ListBox
+    selected_object: str
+    """
 
-        self.config_element()
+    def __init__(self, parent_component):
+        """ parent_component: Gtk.Box """
 
-        menu_box.add_element(Gtk.Label(label="Objetos"))
-        menu_box.add_element(Gtk.HSeparator())
-        menu_box.add_element(self.element)
-        menu_box.add_element(Gtk.HSeparator())
+        # TODO: Tratar modelagem da seleção de objetos.
+        self.selected_object = None
+        self._config_element()
 
-    def config_element(self):
+        parent_component.add_element(Gtk.Label(label="Objetos"))
+        parent_component.add_element(Gtk.HSeparator())
+        parent_component.add_element(self.element)
+        parent_component.add_element(Gtk.HSeparator())
+
+    def add_item(self, item_text):
+        self.listbox.add(self._create_row(item_text))
+        self.listbox.show_all()  # Atualiza a exibição
+
+    def on_row_selected(self, _, row):
+        if row:
+            label = row.get_child()
+            self.selected_object = label.get_text()
+        else:
+            self.selected_object = None
+
+    def _config_element(self):
         self.listbox = Gtk.ListBox()
         self.listbox.set_selection_mode(
             Gtk.SelectionMode.SINGLE)
@@ -23,21 +42,6 @@ class ObjectList():
         scrolled_window.set_size_request(-1, 100)
 
         self.element = scrolled_window
-
-    def add_item(self, item_text):
-        self.listbox.add(self._create_row(item_text))
-        self.listbox.show_all()  # Atualiza a exibição
-
-    # TODO: Tratar remoção de objeto no futuro
-
-    def on_row_selected(self, _, row):
-        if row:
-            label = row.get_child()
-            # Atualmente texto, depois configurar dependendo dos objetos!
-            self.selected_object = label.get_text()
-            print(f"Selecionado: {self.selected_object}")
-        else:
-            self.selected_object = None
 
     def _create_row(self, text):
         row = Gtk.ListBoxRow()

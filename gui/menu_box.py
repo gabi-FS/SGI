@@ -17,6 +17,8 @@ class MenuBox():
         self.add_element(title_label)
         self.add_element(Gtk.HSeparator())
 
+        # Atualmente, o acesso/conexão de botões e funções estarão a nível de FORM.
+        # Essa classe, então, sendo apenas um WRAPPER.
         self.object_list = ObjectList(self)
         self.object_form = ObjectForm(self)
         self.window_form = WindowForm(self)
@@ -25,11 +27,3 @@ class MenuBox():
 
     def add_element(self, new_element):
         self.element.pack_start(new_element, False, True, 0)
-
-    def connect_submit_object(self, function):
-        """A função receberá:
-        1. Input do tipo do objeto
-        2. Input do nome do objeto
-        3. Input das coordenadas
-        """
-        self.object_form.set_on_submit(function)

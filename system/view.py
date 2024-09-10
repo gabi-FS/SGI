@@ -59,10 +59,7 @@ class Window(GraphicObject):
 
 class ViewPort:
     _size: tuple[int, int]
-    _window: (
-        Window  # talvez não seja o ideal, mas a viewport precisa ter acesso à window
-    )
-    # também dá pra passar como parâmetro
+    _window: Window  # viewport precisa ter acesso à window
 
     def __init__(self, size: tuple[int, int] = None, window: Window = None) -> None:
         if size and window:
@@ -96,7 +93,6 @@ class DisplayFile:
 
     def create_object(self, object_type, name, input):
         color = (1, 0, 0)  # Default no momento: RED
-        # TODO: Rever momento de fazer essa tradução de coordenadas para Point!
         new_input = [Point(*x) for x in input]
         match object_type:
             case ObjectType.POINT:

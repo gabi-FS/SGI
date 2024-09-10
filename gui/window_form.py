@@ -48,7 +48,6 @@ class ZoomBox:
         self.element.pack_start(self.zoom_in_button, False, False, 0)
         self.element.pack_start(self.zoom_out_button, False, False, 0)
 
-# TODO: Mover um nível acima (Form terá total controle sobre as funções externas)
     def connect_on_zoom_in(self, func: "function"):
         self._external_zoom_in = func
 

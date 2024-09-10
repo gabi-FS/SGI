@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from system.basics import Point
 from globals import ObjectType
+from system.basics import Point
 
 
 class GraphicObject(ABC):
@@ -20,13 +20,16 @@ class GraphicObject(ABC):
     def points(self):
         return self._points
 
-    # @abstractmethod
-    # def get_center(self):
-    #     pass
-
     @abstractmethod
     def draw(self, context, viewport_transform):
         raise NotImplementedError
+
+    def draw_line(self, context, point1: Point, point2: Point):
+        context.set_source_rgb(*self._color)
+        context.set_line_width(2)
+        context.move_to(point1.x, point1.y)
+        context.line_to(point2.x, point2.y)
+        context.stroke()
 
 
 class PointObject(GraphicObject):
@@ -35,15 +38,9 @@ class PointObject(GraphicObject):
         self._type = ObjectType.POINT
 
     def draw(self, context, viewport_transform):
-        # chamar a transformada de viewport
         new_point = viewport_transform(self._points[0])
-
-        context.set_source_rgb(*self._color)
-        context.set_line_width(2)
-        context.move_to(new_point.x, new_point.y)  # Ponto inicial da linha
-        # Ponto final da linha
-        context.line_to(new_point.x + 1, new_point.y + 1)
-        context.stroke()  # Desenha a linha
+        second_point = Point(new_point.x + 1, new_point.y + 1)
+        super().draw_line(context, new_point, second_point)
 
 
 class LineSegmentObject(GraphicObject):
@@ -52,15 +49,9 @@ class LineSegmentObject(GraphicObject):
         self._type = ObjectType.LINE
 
     def draw(self, context, viewport_transform):
-        # chamar a transformada de viewport
         initial_point = viewport_transform(self._points[0])
         end_point = viewport_transform(self._points[1])
-
-        context.set_source_rgb(*self._color)
-        context.set_line_width(2)
-        context.move_to(*initial_point)  # Ponto inicial da linha
-        context.line_to(*end_point)  # Ponto final da linha
-        context.stroke()  # Desenha a linha
+        super().draw_line(context, initial_point, end_point)
 
 
 class WireframeObject(GraphicObject):
@@ -71,24 +62,12 @@ class WireframeObject(GraphicObject):
 
     def draw(self, context, viewport_transform):
         first_point, *others = self._points
-
-        # chamar a transformada de viewport
         new_first_point = viewport_transform(first_point)
 
         for point in others:
             end_point = viewport_transform(point)
-
-            context.set_source_rgb(*self._color)
-            context.set_line_width(2)
-            context.move_to(*new_first_point)  # Ponto inicial da linha
-            context.line_to(*end_point)  # Ponto final da linha
-            context.stroke()  # Desenha a linha
-
+            super().draw_line(context, new_first_point, end_point)
             new_first_point = end_point
 
         new_end_point = viewport_transform(self._points[0])
-        context.set_source_rgb(*self._color)
-        context.set_line_width(2)
-        context.move_to(*new_first_point)  # Ponto inicial da linha
-        context.line_to(*new_end_point)  # Ponto final da linha
-        context.stroke()  # Desenha a linha
+        super().draw_line(context, new_first_point, new_end_point)

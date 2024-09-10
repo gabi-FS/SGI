@@ -11,6 +11,14 @@ from utils import parse_input, validate
 
 
 class SGI:
+    """ 
+    Sistema Gráfico Interativo: esta classe possui a criação dos principais elementos do sistemas, 
+    assim como os métodos do sistema que simbolizam as funcionalidades principais 
+
+    main_window: MainWindow(GTK.Window)
+    display_file: DisplayFile
+    """
+
     def __init__(self):
         self.main_window = MainWindow(
             WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
