@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from globals import ObjectType
 from system.basics import Point
+import numpy as np
 
 
 class GraphicObject(ABC):
@@ -15,6 +16,7 @@ class GraphicObject(ABC):
         self._name = name
         self._points = points
         self._color = color
+        self.compute_center()
 
     @property
     def points(self):
@@ -30,6 +32,20 @@ class GraphicObject(ABC):
         context.move_to(point1.x, point1.y)
         context.line_to(point2.x, point2.y)
         context.stroke()
+
+    def compute_center(self) -> Point:
+        x_list = []
+        y_list = []
+        for p in self._points:
+            x_list.append(p.x)
+            y_list.append(p.y)
+
+        center_x = np.mean(x_list)
+        center_y = np.mean(y_list)
+
+        self._center = Point(center_x, center_y)
+
+        return self._center
 
 
 class PointObject(GraphicObject):
