@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Point:
     _x: float
     _y: float
@@ -26,3 +29,6 @@ class Point:
 
     def __str__(self) -> str:
         return f"Point: x={self._x}, y={self._y}"
+
+    def get_homogeneous_matrix(self) -> np.matrix:
+        return np.matrix([self._x, self._y, 1.0])
