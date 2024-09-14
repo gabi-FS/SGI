@@ -1,7 +1,11 @@
 from globals import ObjectType
 from system.basics import Point
-from system.objects import (GraphicObject, LineSegmentObject, PointObject,
-                            WireframeObject)
+from system.objects import (
+    GraphicObject,
+    LineSegmentObject,
+    PointObject,
+    WireframeObject,
+)
 
 
 class Window(GraphicObject):
@@ -33,28 +37,20 @@ class Window(GraphicObject):
         self._points[1] = self._points[1] + Point(distance, distance)
 
     def up(self, distance: int = 10):
-        self._points[0] = Point(
-            self._points[0].x, self._points[0].y + distance)
-        self._points[1] = Point(
-            self._points[1].x, self._points[1].y + distance)
+        self._points[0] = Point(self._points[0].x, self._points[0].y + distance)
+        self._points[1] = Point(self._points[1].x, self._points[1].y + distance)
 
     def left(self, distance: int = 10):
-        self._points[0] = Point(
-            self._points[0].x - distance, self._points[0].y)
-        self._points[1] = Point(
-            self._points[1].x - distance, self._points[1].y)
+        self._points[0] = Point(self._points[0].x - distance, self._points[0].y)
+        self._points[1] = Point(self._points[1].x - distance, self._points[1].y)
 
     def right(self, distance: int = 10):
-        self._points[0] = Point(
-            self._points[0].x + distance, self._points[0].y)
-        self._points[1] = Point(
-            self._points[1].x + distance, self._points[1].y)
+        self._points[0] = Point(self._points[0].x + distance, self._points[0].y)
+        self._points[1] = Point(self._points[1].x + distance, self._points[1].y)
 
     def down(self, distance: int = 10):
-        self._points[0] = Point(
-            self._points[0].x, self._points[0].y - distance)
-        self._points[1] = Point(
-            self._points[1].x, self._points[1].y - distance)
+        self._points[0] = Point(self._points[0].x, self._points[0].y - distance)
+        self._points[1] = Point(self._points[1].x, self._points[1].y - distance)
 
 
 class ViewPort:
@@ -91,8 +87,8 @@ class DisplayFile:
         self._view_port = view_port
         self._objects = []
 
-    def create_object(self, object_type, name, input):
-        color = (1, 0, 0)  # Default no momento: RED
+    def create_object(self, object_type, name, input, color):
+
         new_input = [Point(*x) for x in input]
         match object_type:
             case ObjectType.POINT:

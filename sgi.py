@@ -11,17 +11,16 @@ from utils import parse_input, validate
 
 
 class SGI:
-    """ 
-    Sistema Gráfico Interativo: esta classe possui a criação dos principais elementos do sistemas, 
-    assim como os métodos do sistema que simbolizam as funcionalidades principais 
+    """
+    Sistema Gráfico Interativo: esta classe possui a criação dos principais elementos do sistemas,
+    assim como os métodos do sistema que simbolizam as funcionalidades principais
 
     main_window: MainWindow(GTK.Window)
     display_file: DisplayFile
     """
 
     def __init__(self):
-        self.main_window = MainWindow(
-            WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
+        self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
         window = Window(Point(0, 0), (VIEWPORT_SIZE, VIEWPORT_SIZE))
         viewport = ViewPort((VIEWPORT_SIZE, VIEWPORT_SIZE), window)
         self.display_file = DisplayFile(viewport)
@@ -45,17 +44,23 @@ class SGI:
         object_form.set_on_submit(self.add_object)
         window_form.connect_zoom_buttons(self.zoom_in, self.zoom_out)
         window_form.connect_panning_buttons(
-            self.go_up, self.go_left, self.go_right, self.go_down)
+            self.go_up, self.go_left, self.go_right, self.go_down
+        )
 
     def add_object(self, object_type, name, input):
-        """Função executada ao clicar em 'Adicionar objeto' """
+        """Função executada ao clicar em 'Adicionar objeto'"""
         try:
             result: List[Tuple[float]] = parse_input(input)
             validate(result, object_type)
 
             name = name if name else object_type.name.title()
             object_list_name = f"{object_type.name}[{name}]"
-            self.display_file.create_object(object_type, name, result)
+            self.display_file.create_object(
+                object_type,
+                name,
+                result,
+                self.main_window.menu_box.window_form.color_box.get_color_tuple(),
+            )
             self.main_window.menu_box.object_list.add_item(object_list_name)
             self.main_window.drawing_area.queue_draw()
         except (ValueError, SyntaxError, AttributeError) as e:

@@ -1,4 +1,4 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 
 
 class WindowForm:
@@ -7,11 +7,13 @@ class WindowForm:
         title_label.set_markup("Janela")
         self.zoom_box = ZoomBox()
         self.panning_box = PanningBox()
+        self.color_box = ColorBox()
 
         menu_box.add_element(title_label)
         menu_box.add_element(Gtk.HSeparator())
         menu_box.add_element(self.zoom_box.element)
         menu_box.add_element(self.panning_box.element)
+        menu_box.add_element(self.color_box.element)
         menu_box.add_element(Gtk.HSeparator())
 
     def connect_panning_buttons(self, on_up, on_left, on_right, on_down):
@@ -32,8 +34,7 @@ class ZoomBox:
     _external_zoom_out: "function"
 
     def __init__(self):
-        self.element = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.element = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 
         zoom_label = Gtk.Label(label="Zoom:")
         zoom_label.set_xalign(0)
@@ -70,8 +71,7 @@ class PanningBox:
         self.external_on_button_right = None
         self.external_on_button_down = None
 
-        self.element = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.element = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         grid = Gtk.Grid()
         grid.set_column_homogeneous(True)
         grid.set_row_homogeneous(True)
@@ -111,3 +111,31 @@ class PanningBox:
     def on_button_down(self, _):
         if self.external_on_button_down:
             self.external_on_button_down()
+
+
+class ColorBox:
+    def __init__(self) -> None:
+        self.element = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.color_button = Gtk.ColorButton()
+
+        self.color_button.connect("color-set", self.on_color_chosen)
+
+        self.color = Gdk.RGBA(1, 0, 0, 1)  # starting color is RED (opaque)
+        self.color_button.set_rgba(self.color)
+
+        coloring_label = Gtk.Label(label="Object color:")
+        coloring_label.set_xalign(0)
+
+        self.element.pack_start(coloring_label, True, True, 0)
+        self.element.pack_start(self.color_button, True, True, 0)
+
+    def on_color_chosen(self, widget):
+        new_color = widget.get_rgba()
+
+        self.color = new_color
+        print(f"Cor escolhida: {self.color}")
+
+    def get_color_tuple(self) -> tuple[float]:
+        "Returns a tuple with the current color"
+
+        return (self.color.red, self.color.green, self.color.blue)
