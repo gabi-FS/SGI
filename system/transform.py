@@ -52,11 +52,50 @@ class Transformation:
         Method to build a rotation matrix.
 
         Args:
-            angle: rotation angle in radians
+            angle: rotation angle in degrees
 
         Returns:
             rotation matrix (numpy matrix)
         """
-        cos = np.cos([angle])[0]
-        sin = np.sin([angle])[0]
+        angle_rad = np.deg2rad([angle])
+        cos = np.cos(angle_rad)[0]
+        sin = np.sin(angle_rad)[0]
         return np.matrix([[-cos, -sin, 0], [sin, cos, 0], [0, 0, 1]])
+
+    @staticmethod
+    def get_rotation_about_point(point: Point, angle: float) -> np.matrix:
+        """
+        Method to build a rotation matrix about a point.
+
+        Args:
+            point: point of reference to the rotation
+            angle: rotation angle in degrees
+
+        Returns:
+            rotation matrix (numpy matrix)
+        """
+        x = point.x
+        y = point.y
+        trans_to_point = Transformation.get_translation_matrix(-x, -y)
+        rot = Transformation.get_rotation_matrix(angle)
+        trans_back = Transformation.get_translation_matrix(x, y)
+        return trans_to_point*rot*trans_back
+
+    @staticmethod
+    def get_scaling_about_point(point: Point, x_factor: float, y_factor: float) -> np.matrix:
+        """
+        Method to build a rotation matrix about a point.
+
+        Args:
+            point: point of reference to the rotation
+            angle: rotation angle in degrees
+
+        Returns:
+            rotation matrix (numpy matrix)
+        """
+        x = point.x
+        y = point.y
+        trans_to_point = Transformation.get_translation_matrix(-x, -y)
+        scaling = Transformation.get_scaling_matrix(x_factor, y_factor)
+        trans_back = Transformation.get_translation_matrix(x, y)
+        return trans_to_point*scaling*trans_back

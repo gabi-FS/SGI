@@ -20,7 +20,8 @@ class SGI:
     """
 
     def __init__(self):
-        self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
+        self.main_window = MainWindow(
+            WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
         window = Window(Point(0, 0), (VIEWPORT_SIZE, VIEWPORT_SIZE))
         viewport = ViewPort((VIEWPORT_SIZE, VIEWPORT_SIZE), window)
         self.display_file = DisplayFile(viewport)
@@ -55,13 +56,14 @@ class SGI:
 
             name = name if name else object_type.name.title()
             object_list_name = f"{object_type.name}[{name}]"
-            self.display_file.create_object(
+            object_id = self.display_file.create_object(
                 object_type,
                 name,
                 result,
-                self.main_window.menu_box.window_form.color_box.get_color_tuple(),
+                self.main_window.menu_box.object_form.color_box.get_color_tuple(),
             )
-            self.main_window.menu_box.object_list.add_item(object_list_name)
+            self.main_window.menu_box.object_list.add_item(
+                object_list_name, object_id)
             self.main_window.drawing_area.queue_draw()
         except (ValueError, SyntaxError, AttributeError) as e:
             print(f"Erro ao processar a string: {e}")

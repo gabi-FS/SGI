@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 from globals import ObjectType
 from system.basics import Point
-import numpy as np
 
 
 class GraphicObject(ABC):
+    _id_increment = 1
+
+    _id = int
     _name: str
     _points: list[Point]  # lista de pontos (conjuntos de coordenadas x e y)
     _center: tuple[Point]
@@ -13,10 +17,16 @@ class GraphicObject(ABC):
     _color: tuple
 
     def __init__(self, name: str, points: list, color) -> None:
+        self._id = GraphicObject._id_increment
+        GraphicObject._id_increment += 1
         self._name = name
         self._points = points
         self._color = color
         self.compute_center()
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def points(self):

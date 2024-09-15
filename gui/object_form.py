@@ -1,11 +1,15 @@
-from gi.repository import Gtk
+from gi.repository import Gdk, Gtk
 
 from globals import ObjectType
 
 
 class ObjectForm:
+
+    """ Formulário pra criação do objeto"""
+
     def __init__(self, menu_box):
         self.object_radio = ObjectRadio()
+        self.color_box = ColorBox()
         self.name_input = Gtk.Entry()
         self.coordinate_input = Gtk.Entry()
         self.coordinate_input.set_placeholder_text("(x1, y1), (x2, y2),...")
@@ -14,6 +18,7 @@ class ObjectForm:
 
         menu_box.add_element(Gtk.Label(label="Criação de objeto"))
         menu_box.add_element(Gtk.HSeparator())
+        menu_box.add_element(self.color_box.element)
         menu_box.add_element(self.object_radio.element)
         menu_box.add_element(self.create_form_label(
             "Nome do objeto (Opcional):"))
@@ -73,3 +78,32 @@ class ObjectRadio:
     def on_toggle(self, button, type):
         if button.get_active():
             self.selected_type = type
+
+
+class ColorBox:
+    def __init__(self) -> None:
+        self.element = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.color_button = Gtk.ColorButton()
+
+        self.color_button.connect("color-set", self.on_color_chosen)
+
+        self.color = Gdk.RGBA(1, 0, 0, 1)  # starting color is RED (opaque)
+        self.color_button.set_rgba(self.color)
+
+        coloring_label = Gtk.Label(label="Cor do pincel:")
+        coloring_label.set_xalign(0)
+
+        self.element.pack_start(coloring_label, True, True, 0)
+        self.element.pack_start(self.color_button, True, True, 0)
+
+    def on_color_chosen(self, widget):
+        new_color = widget.get_rgba()
+
+        self.color = new_color
+        print(f"Cor escolhida: {self.color}")
+
+    def get_color_tuple(self) -> tuple[float]:
+        "Returns a tuple with the current color"
+
+        return (self.color.red, self.color.green, self.color.blue)
