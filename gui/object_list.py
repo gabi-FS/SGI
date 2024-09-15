@@ -1,24 +1,26 @@
+from typing import Any, Callable, Dict
+
 from gi.repository import Gtk
 
+from globals import TransformationType
 from gui.transform_window import TransformWindow
 
 
 class ObjectList():
-    """
+    selected_object: int
     element: Gtk.ScrolledWindow
     listbox: Gtk.ListBox
-    selected_object: int
-    """
+    _transform_button: Gtk.Button
+    _on_apply_transform: Callable[[int, Dict[TransformationType, Any]], None]
 
     def __init__(self, parent_component):
-        """ parent_component: Gtk.Box """
+        """ parent_component: MenuBox """
 
         self.selected_object = None
         self._config_element()
         self._transform_button = Gtk.Button(label="Transformar")
-        self._transform_button.connect("clicked", self.on_transform)
-        # Setar para False depois, por enquanto só pra facilitar desenvolvimento
-        self._transform_button.set_sensitive(True)
+        self._transform_button.connect("clicked", self._on_transform)
+        self._transform_button.set_sensitive(False)
 
         parent_component.add_element(Gtk.Label(label="Objetos"))
         parent_component.add_element(Gtk.HSeparator())
@@ -30,13 +32,10 @@ class ObjectList():
         self.listbox.add(self._create_row(item_text, object_id))
         self.listbox.show_all()  # Atualiza a exibição
 
-    def on_transform(self, _):
-        # Abrir a modal, na verdade
-        print(self.selected_object)
-        modal_window = TransformWindow(self.element)
-        modal_window.show_all()
+    def set_on_apply_transform(self, on_apply: Callable[[int, Dict[TransformationType, Any]], None]):
+        self._on_apply_transform = on_apply
 
-    def on_row_selected(self, _, row):
+    def _on_row_selected(self, _, row: Gtk.ListBoxRow):
         if row:
             self.selected_object = row.id
             self._transform_button.set_sensitive(True)
@@ -44,11 +43,16 @@ class ObjectList():
             self.selected_object = None
             self._transform_button.set_sensitive(False)
 
+    def _on_transform(self, _):
+        modal_window = TransformWindow(
+            self.element, self.selected_object, self._on_apply_transform)
+        modal_window.show_all()
+
     def _config_element(self):
         self.listbox = Gtk.ListBox()
         self.listbox.set_selection_mode(
             Gtk.SelectionMode.SINGLE)
-        self.listbox.connect("row-selected", self.on_row_selected)
+        self.listbox.connect("row-selected", self._on_row_selected)
 
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.add(self.listbox)

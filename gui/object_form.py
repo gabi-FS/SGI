@@ -29,6 +29,9 @@ class ObjectForm:
         menu_box.add_element(self.submit_button)
         menu_box.add_element(Gtk.HSeparator())
 
+    def get_color(self) -> tuple[float]:
+        return self.color_box.get_color_tuple()
+
     def create_form_label(self, name):
         form_label = Gtk.Label()
         form_label.set_markup(f"<b>{name}</b>")
@@ -98,10 +101,7 @@ class ColorBox:
         self.element.pack_start(self.color_button, True, True, 0)
 
     def on_color_chosen(self, widget):
-        new_color = widget.get_rgba()
-
-        self.color = new_color
-        print(f"Cor escolhida: {self.color}")
+        self.color = widget.get_rgba()
 
     def get_color_tuple(self) -> tuple[float]:
         "Returns a tuple with the current color"

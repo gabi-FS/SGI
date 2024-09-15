@@ -1,5 +1,4 @@
-import ast
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from gi.repository import Gtk
 
@@ -7,7 +6,7 @@ from globals import *
 from gui.main_window import MainWindow
 from system.objects import Point
 from system.view import DisplayFile, ViewPort, Window
-from utils import parse_input, validate
+from utils import parse_input, validate, validate_transform_input
 
 
 class SGI:
@@ -38,10 +37,12 @@ class SGI:
         drawing_area = self.main_window.drawing_area
         object_form = self.main_window.menu_box.object_form
         window_form = self.main_window.menu_box.window_form
+        object_list = self.main_window.menu_box.object_list
 
         drawing_area.connect_on_draw(self.display_file.on_draw)
         drawing_area.connect_scroll_up_down(self.zoom_in, self.zoom_out)
 
+        object_list.set_on_apply_transform(self.transform_object)
         object_form.set_on_submit(self.add_object)
         window_form.connect_zoom_buttons(self.zoom_in, self.zoom_out)
         window_form.connect_panning_buttons(
@@ -60,13 +61,34 @@ class SGI:
                 object_type,
                 name,
                 result,
-                self.main_window.menu_box.object_form.color_box.get_color_tuple(),
+                self.main_window.menu_box.object_form.get_color(),
             )
             self.main_window.menu_box.object_list.add_item(
                 object_list_name, object_id)
             self.main_window.drawing_area.queue_draw()
         except (ValueError, SyntaxError, AttributeError) as e:
             print(f"Erro ao processar a string: {e}")
+
+    def transform_object(self, object_id: int, object_input: Dict[TransformationType, Any]) -> int:
+        '''
+        object_input:
+            TRANSLATION, SCALING: ['x': str, 'y': str]
+            ROTATION: ['type': RotationType, 'angle': str, 'point': str]
+        '''
+        try:
+            # Não faz parsing das str, apenas validações para evitar que o sistema quebre com entradas incorretas.
+            # Valores podem ser vazios (sem tratamento se transformação deverá ser aplicada ou não)
+            validate_transform_input(object_input)
+            graphic_object = self.display_file.get_object(object_id)
+            # TODO: Adquirir novos pontos do objeto e atualizá-lo
+
+            # print(object_input)
+            # print(graphic_object)
+            # self.main_window.drawing_area.queue_draw()
+            return 1
+        except (ValueError) as e:
+            print(f"Erro ao validar entradas: {e}")
+            return -1  # Para manter a modal aberta em caso de problemas
 
     def zoom_in(self):
         self.display_file.on_zoom_in()

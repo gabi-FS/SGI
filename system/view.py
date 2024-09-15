@@ -1,3 +1,5 @@
+from typing import Dict
+
 from globals import ObjectType
 from system.basics import Point
 from system.objects import (GraphicObject, LineSegmentObject, PointObject,
@@ -84,12 +86,12 @@ class ViewPort:
 
 
 class DisplayFile:
-    _objects: list[GraphicObject]
+    _objects: Dict[int, GraphicObject]
     _view_port: ViewPort
 
     def __init__(self, view_port: ViewPort) -> None:
         self._view_port = view_port
-        self._objects = []
+        self._objects = {}
 
     def create_object(self, object_type, name, input, color) -> int:
         new_input = [Point(*x) for x in input]
@@ -100,13 +102,15 @@ class DisplayFile:
                 obj = LineSegmentObject(name, new_input, color)
             case ObjectType.POLYGON:
                 obj = WireframeObject(name, new_input, color)
-        self._objects.append(obj)
-
+        self._objects[obj.id] = obj
         return obj.id
 
     def on_draw(self, context):
-        for obj in self._objects:
+        for obj in self._objects.values():
             obj.draw(context, self._view_port.transform)
+
+    def get_object(self, id: int) -> GraphicObject:
+        return self._objects.get(id)
 
     def on_zoom_in(self):
         self._view_port.window.zoom_in()

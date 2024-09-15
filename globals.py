@@ -9,3 +9,15 @@ class ObjectType(Enum):
     POINT = 1
     LINE = 2
     POLYGON = 3
+
+
+class TransformationType(Enum):
+    TRANSLATION = 1,
+    ROTATION = 2,
+    SCALING = 3
+
+
+class RotationType(Enum):
+    WORLD_CENTER = 1,
+    OBJECT_CENTER = 2,
+    AROUND_POINT = 3
