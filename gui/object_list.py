@@ -1,5 +1,7 @@
 from gi.repository import Gtk
 
+from gui.transform_window import TransformWindow
+
 
 class ObjectList():
     """
@@ -15,7 +17,8 @@ class ObjectList():
         self._config_element()
         self._transform_button = Gtk.Button(label="Transformar")
         self._transform_button.connect("clicked", self.on_transform)
-        self._transform_button.set_sensitive(False)
+        # Setar para False depois, por enquanto só pra facilitar desenvolvimento
+        self._transform_button.set_sensitive(True)
 
         parent_component.add_element(Gtk.Label(label="Objetos"))
         parent_component.add_element(Gtk.HSeparator())
@@ -30,7 +33,7 @@ class ObjectList():
     def on_transform(self, _):
         # Abrir a modal, na verdade
         print(self.selected_object)
-        modal_window = ModalWindow(self.element)
+        modal_window = TransformWindow(self.element)
         modal_window.show_all()
 
     def on_row_selected(self, _, row):
@@ -64,30 +67,3 @@ class ObjectList():
         label.set_margin_end(2)
         row.add(label)
         return row
-
-
-class ModalWindow(Gtk.Window):
-    def __init__(self, widget):
-        super().__init__(title="Janela Modal")
-        self.set_modal(True)  # Define a janela como modal
-        self.set_default_size(300, 150)
-
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.add(box)
-
-        label = Gtk.Label(label="Nome:")
-        entry = Gtk.Entry()
-        box.pack_start(label, True, True, 0)
-        box.pack_start(entry, True, True, 0)
-
-        close_button = Gtk.Button(label="Fechar")
-        close_button.connect("clicked", self.on_close_clicked)
-        box.pack_start(close_button, True, True, 0)
-
-        # Obtém a janela base a partir do widget passado
-        parent_window = widget.get_toplevel()
-        self.set_transient_for(parent_window)
-        self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
-
-    def on_close_clicked(self, widget):
-        self.destroy()  # Fecha a janela modal
