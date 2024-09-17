@@ -12,7 +12,7 @@ class GraphicObject(ABC):
     _id = int
     _name: str
     _points: list[Point]  # lista de pontos (conjuntos de coordenadas x e y)
-    _center: tuple[Point]
+    _center: Point
     _type: ObjectType
     _color: tuple
 
@@ -29,8 +29,12 @@ class GraphicObject(ABC):
         return self._id
 
     @property
-    def points(self):
+    def points(self) -> list[Point]:
         return self._points
+
+    @property
+    def center(self) -> Point:
+        return self._center
 
     @abstractmethod
     def draw(self, context, viewport_transform):
@@ -56,6 +60,11 @@ class GraphicObject(ABC):
         self._center = Point(center_x, center_y)
 
         return self._center
+
+    def update_points(self, new_points: list[Point]):
+        print(f"new points:", *new_points)
+        self._points = new_points
+        self.compute_center()
 
 
 class PointObject(GraphicObject):

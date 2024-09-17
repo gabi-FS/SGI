@@ -7,6 +7,7 @@ from gui.main_window import MainWindow
 from system.objects import Point
 from system.view import DisplayFile, ViewPort, Window
 from utils import parse_input, validate, validate_transform_input
+from system.transform import Transformation
 
 
 class SGI:
@@ -19,11 +20,11 @@ class SGI:
     """
 
     def __init__(self):
-        self.main_window = MainWindow(
-            WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
+        self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
         window = Window(Point(0, 0), (VIEWPORT_SIZE, VIEWPORT_SIZE))
         viewport = ViewPort((VIEWPORT_SIZE, VIEWPORT_SIZE), window)
         self.display_file = DisplayFile(viewport)
+        self.transformation = Transformation()
 
         self.connect()
 
@@ -63,30 +64,35 @@ class SGI:
                 result,
                 self.main_window.menu_box.object_form.get_color(),
             )
-            self.main_window.menu_box.object_list.add_item(
-                object_list_name, object_id)
+            self.main_window.menu_box.object_list.add_item(object_list_name, object_id)
             self.main_window.drawing_area.queue_draw()
         except (ValueError, SyntaxError, AttributeError) as e:
             print(f"Erro ao processar a string: {e}")
 
-    def transform_object(self, object_id: int, object_input: Dict[TransformationType, Any]) -> int:
-        '''
+    def transform_object(
+        self, object_id: int, object_input: Dict[TransformationType, Any]
+    ) -> int:
+        """
         object_input:
             TRANSLATION, SCALING: ['x': str, 'y': str]
             ROTATION: ['type': RotationType, 'angle': str, 'point': str]
-        '''
+        """
         try:
             # Não faz parsing das str, apenas validações para evitar que o sistema quebre com entradas incorretas.
             # Valores podem ser vazios (sem tratamento se transformação deverá ser aplicada ou não)
             validate_transform_input(object_input)
+            print(object_input)
             graphic_object = self.display_file.get_object(object_id)
-            # TODO: Adquirir novos pontos do objeto e atualizá-lo
+            new_points = self.transformation.transform_object_points(
+                graphic_object, object_input
+            )
+            graphic_object.update_points(new_points)
 
             # print(object_input)
             # print(graphic_object)
-            # self.main_window.drawing_area.queue_draw()
+            self.main_window.drawing_area.queue_draw()
             return 1
-        except (ValueError) as e:
+        except ValueError as e:
             print(f"Erro ao validar entradas: {e}")
             return -1  # Para manter a modal aberta em caso de problemas
 
