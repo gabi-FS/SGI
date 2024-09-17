@@ -1,8 +1,11 @@
-import numpy as np
-from system.basics import Point
-from globals import TransformationType, RotationType
-from system.objects import GraphicObject
+import re
 from typing import Any, Dict, List, Tuple
+
+import numpy as np
+
+from globals import RotationType, TransformationType
+from system.basics import Point
+from system.objects import GraphicObject
 
 
 class Transformation:
@@ -185,10 +188,13 @@ class Transformation:
                         object.center, float(angle)
                     )
                 case RotationType.AROUND_POINT:
-                    anchor_point = tuple(data_input["point"])
+                    tuple_pattern = r"\(([^)]+)\)"
+                    matches = re.findall(tuple_pattern, data_input["point"])
+                    anchor_point = matches[0].split(',')
                     print(anchor_point)
                     result_matrix = result_matrix @ self.get_rotation_about_point(
-                        Point(float(anchor_point[0]), float(anchor_point[1])),
+                        Point(float(anchor_point[0].strip()), float(
+                            anchor_point[1].strip())),
                         float(angle),
                     )
         return result_matrix
