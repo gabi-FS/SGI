@@ -8,7 +8,7 @@ from system.objects import Point
 from system.transform import Transformation
 from system.view import DisplayFile, ViewPort, Window
 from utils import parse_input
-from validation import Validation
+from validation import Validation, ValidationError
 
 
 class SGI:
@@ -64,6 +64,8 @@ class SGI:
             self.main_window.drawing_area.queue_draw()
         except (ValueError, SyntaxError, AttributeError) as e:
             print(f"Erro ao processar a string: {e}")
+        except ValidationError as e:
+            print(f"Erro ao validar entradas: {e}")
 
     def transform_object(self, object_id: int, object_input: Dict[TransformationType, Any]) -> int:
         """
@@ -78,9 +80,9 @@ class SGI:
             graphic_object.update_points(new_points)
             self.main_window.drawing_area.queue_draw()
             return 1
-        except ValueError as e:
+        except ValidationError as e:
             print(f"Erro ao validar entradas: {e}")
-            return -1  # Para manter a modal aberta em caso de problemas
+            return -1  # Para manter a modal aberta no caso de problemas
 
     def zoom_in(self):
         self.display_file.on_zoom_in()

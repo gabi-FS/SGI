@@ -11,7 +11,7 @@ def parse_input(input_str: str) -> List[Tuple[float]]:
     result = []
     for match in matches:
         numbers = match.split(',')
-        if len(numbers) != 2:
+        if len(numbers) != 2:  # TODO: Separar parsing e validação
             raise ValueError(f"Tupla inválida (deve conter exatamente dois elementos): {match}")
         try:
             num1 = float(numbers[0].strip())
@@ -19,7 +19,6 @@ def parse_input(input_str: str) -> List[Tuple[float]]:
             result.append((num1, num2))
         except ValueError:
             raise ValueError(f"Os valores fornecidos na tupla não são números válidos: {match}")
-
     return result
 
 
