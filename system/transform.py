@@ -81,21 +81,19 @@ class Transformation:
         Returns:
             resulting matrix (numpy array) applying rotation
         """
-
-        result_matrix = curr_matrix
-        angle = data_input["angle"]
-        if angle.strip() != "":
-            rotation_type, angle = data_input["type"], float(angle)
-            match rotation_type:
-                case RotationType.WORLD_CENTER:
-                    rotation_matrix = Transformation.get_rotation_matrix(angle)
-                case RotationType.OBJECT_CENTER:
-                    rotation_matrix = Transformation.get_rotation_about_point(object_center, angle)
-                case RotationType.AROUND_POINT:
-                    numbers = get_tuple_from_str(data_input["point"])
-                    rotation_matrix = Transformation.get_rotation_about_point(Point(*numbers), angle)
-            result_matrix = result_matrix @ rotation_matrix
-        return result_matrix
+        angle = data_input["angle"].strip()
+        if angle == "":
+            return curr_matrix
+        rotation_type, angle = data_input["type"], float(angle)
+        match rotation_type:
+            case RotationType.WORLD_CENTER:
+                rotation_matrix = Transformation.get_rotation_matrix(angle)
+            case RotationType.OBJECT_CENTER:
+                rotation_matrix = Transformation.get_rotation_about_point(object_center, angle)
+            case RotationType.AROUND_POINT:
+                numbers = get_tuple_from_str(data_input["point"])
+                rotation_matrix = Transformation.get_rotation_about_point(Point(*numbers), angle)
+        return curr_matrix @ rotation_matrix
 
     @staticmethod
     def transform_points(points: list[Point], matrix: np.array) -> list[Point]:
