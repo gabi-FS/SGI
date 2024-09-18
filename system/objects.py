@@ -62,7 +62,6 @@ class GraphicObject(ABC):
         return self._center
 
     def update_points(self, new_points: list[Point]):
-        print(f"new points:", *new_points)
         self._points = new_points
         self.compute_center()
 
