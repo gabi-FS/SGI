@@ -44,14 +44,12 @@ class ObjectList():
             self._transform_button.set_sensitive(False)
 
     def _on_transform(self, _):
-        modal_window = TransformWindow(
-            self.element, self.selected_object, self._on_apply_transform)
+        modal_window = TransformWindow(self.element, self.selected_object, self._on_apply_transform)
         modal_window.show_all()
 
     def _config_element(self):
         self.listbox = Gtk.ListBox()
-        self.listbox.set_selection_mode(
-            Gtk.SelectionMode.SINGLE)
+        self.listbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.listbox.connect("row-selected", self._on_row_selected)
 
         scrolled_window = Gtk.ScrolledWindow()

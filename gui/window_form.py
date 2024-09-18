@@ -1,4 +1,4 @@
-from gi.repository import Gdk, Gtk
+from gi.repository import Gtk
 
 
 class WindowForm:
@@ -32,8 +32,7 @@ class ZoomBox:
     _external_zoom_out: "function"
 
     def __init__(self):
-        self.element = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.element = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 
         zoom_label = Gtk.Label(label="Zoom:")
         zoom_label.set_xalign(0)
@@ -70,8 +69,7 @@ class PanningBox:
         self.external_on_button_right = None
         self.external_on_button_down = None
 
-        self.element = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.element = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         grid = Gtk.Grid()
         grid.set_column_homogeneous(True)
         grid.set_row_homogeneous(True)

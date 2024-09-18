@@ -13,7 +13,9 @@ class Transformation:
 
     @staticmethod
     def get_transformed_points(object: GraphicObject, transform_input: Dict[TransformationType, Any]) -> list[Point]:
-        """Dada a entrada e os dados do objeto, retorna novos pontos com essas transformações aplicadas."""
+        """
+        Dada a entrada e os dados do objeto, retorna novos pontos com as transformações aplicadas.
+        """
         identity_matrix = np.identity(3)
         transforming_matrix = identity_matrix
 
@@ -24,10 +26,10 @@ class Transformation:
         transforming_matrix = Transformation.apply_rotation(
             transforming_matrix, transform_input[TransformationType.ROTATION], object.center)
 
-        if not np.array_equal(transforming_matrix, identity_matrix):
-            return Transformation.transform_points(object.points, transforming_matrix)
-        else:
+        if np.array_equal(transforming_matrix, identity_matrix):
             return object.points
+        else:
+            return Transformation.transform_points(object.points, transforming_matrix)
 
     @staticmethod
     def apply_translation(curr_matrix: np.array, data_input: Dict[str, str]) -> np.array:
