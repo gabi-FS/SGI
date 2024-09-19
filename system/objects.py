@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+import cairo
 import numpy as np
 
 from globals import ObjectType
@@ -40,7 +41,7 @@ class GraphicObject(ABC):
     def draw(self, context, viewport_transform):
         raise NotImplementedError
 
-    def draw_line(self, context, point1: Point, point2: Point):
+    def draw_line(self, context: cairo.Context, point1: Point, point2: Point):
         context.set_source_rgb(*self._color)
         context.set_line_width(2)
         context.move_to(point1.x, point1.y)
@@ -71,7 +72,7 @@ class PointObject(GraphicObject):
         super().__init__(name, points, color)
         self._type = ObjectType.POINT
 
-    def draw(self, context, viewport_transform):
+    def draw(self, context: cairo.Context, viewport_transform):
         new_point = viewport_transform(self._points[0])
         second_point = Point(new_point.x + 1, new_point.y + 1)
         super().draw_line(context, new_point, second_point)
@@ -82,19 +83,18 @@ class LineSegmentObject(GraphicObject):
         super().__init__(name, points, color)
         self._type = ObjectType.LINE
 
-    def draw(self, context, viewport_transform):
+    def draw(self, context: cairo.Context, viewport_transform):
         initial_point = viewport_transform(self._points[0])
         end_point = viewport_transform(self._points[1])
         super().draw_line(context, initial_point, end_point)
 
 
 class WireframeObject(GraphicObject):
-
     def __init__(self, name: str, points: list, color) -> None:
         super().__init__(name, points, color)
         self._type = ObjectType.POLYGON
 
-    def draw(self, context, viewport_transform):
+    def draw(self, context: cairo.Context, viewport_transform):
         first_point, *others = self._points
         new_first_point = viewport_transform(first_point)
 

@@ -31,10 +31,9 @@ class Validation:
 
     @staticmethod
     def object_transform_input(object_input: dict):
-        ''' Aceita valores vazios, 
-        exceto para conjunto ângulo e ponto para tipo de rotação ao redor do ponto 
+        """ Aceita valores vazios, exceto para conjunto ângulo e ponto para tipo de rotação ao redor do ponto
         (os dois devem ser preenchidos ou os dois devem ser vazios)
-        '''
+        """
         try:
             for key, value in object_input.items():
                 match key:
@@ -48,8 +47,8 @@ class Validation:
             raise ValidationError(e)
 
     @staticmethod
-    def _translation(object: dict[str, str]):
-        x, y = object["x"].strip(), object["y"].strip()
+    def _translation(input_object: dict[str, str]):
+        x, y = input_object["x"].strip(), input_object["y"].strip()
         try:
             if x != '':
                 float(x)
@@ -59,9 +58,9 @@ class Validation:
             raise ValidationError("Os valores de translação precisam ser numéricos")
 
     @staticmethod
-    def _rotation(object: dict):
-        type_value = object['type']
-        angle_value = object['angle'].strip()
+    def _rotation(input_object: dict):
+        type_value = input_object['type']
+        angle_value = input_object['angle'].strip()
         try:
             if angle_value != '':
                 float(angle_value)
@@ -69,7 +68,7 @@ class Validation:
             raise ValidationError("O valor do ângulo precisa ser numérico")
 
         if RotationType.AROUND_POINT == type_value:
-            point_value = object['point'].strip()
+            point_value = input_object['point'].strip()
             if angle_value != '':
                 if point_value == '':
                     raise ValidationError(
@@ -91,8 +90,8 @@ class Validation:
                 raise ValidationError("Ângulo deve ser preenchido caso o ponto seja para esse tipo de rotação.")
 
     @staticmethod
-    def _scaling(object: dict):
-        x, y = object["x"].strip(), object["y"].strip()
+    def _scaling(input_object: dict):
+        x, y = input_object["x"].strip(), input_object["y"].strip()
         try:
             if x != "":
                 float(x)

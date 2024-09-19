@@ -1,3 +1,5 @@
+from typing import Callable
+
 from gi.repository import Gtk
 
 
@@ -14,22 +16,22 @@ class WindowForm:
         menu_box.add_element(self.panning_box.element)
         menu_box.add_element(Gtk.HSeparator())
 
-    def connect_panning_buttons(self, on_up, on_left, on_right, on_down):
-        """args: functions"""
+    def connect_panning_buttons(self,
+                                on_up: Callable[[], None], on_left: Callable[[], None],
+                                on_right: Callable[[], None], on_down: Callable[[], None]):
         self.panning_box.external_on_button_up = on_up
         self.panning_box.external_on_button_left = on_left
         self.panning_box.external_on_button_right = on_right
         self.panning_box.external_on_button_down = on_down
 
-    def connect_zoom_buttons(self, zoom_in, zoom_out):
-        """args: functions"""
+    def connect_zoom_buttons(self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]):
         self.zoom_box.connect_on_zoom_in(zoom_in)
         self.zoom_box.connect_on_zoom_out(zoom_out)
 
 
 class ZoomBox:
-    _external_zoom_in: "function"
-    _external_zoom_out: "function"
+    _external_zoom_in: Callable[[], None]
+    _external_zoom_out: Callable[[], None]
 
     def __init__(self):
         self.element = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
@@ -47,28 +49,33 @@ class ZoomBox:
         self.element.pack_start(self.zoom_in_button, False, False, 0)
         self.element.pack_start(self.zoom_out_button, False, False, 0)
 
-    def connect_on_zoom_in(self, func: "function"):
+    def connect_on_zoom_in(self, func: Callable[[], None]):
         self._external_zoom_in = func
 
-    def connect_on_zoom_out(self, func: "function"):
+    def connect_on_zoom_out(self, func: Callable[[], None]):
         self._external_zoom_out = func
 
-    def on_zoom_in(self, button):
+    def on_zoom_in(self, _):
         if self._external_zoom_in:
             self._external_zoom_in()
 
-    def on_zoom_out(self, button):
+    def on_zoom_out(self, _):
         if self._external_zoom_out:
             self._external_zoom_out()
 
 
 class PanningBox:
-    def __init__(self):  # Directional Pad
-        self.external_on_button_up = None
-        self.external_on_button_left = None
-        self.external_on_button_right = None
-        self.external_on_button_down = None
+    element: Gtk.Box
+    external_on_button_up: Callable[[], None]
+    external_on_button_left: Callable[[], None]
+    external_on_button_right: Callable[[], None]
+    external_on_button_down: Callable[[], None]
+    button_up: Gtk.Button
+    button_left: Gtk.Button
+    button_right: Gtk.Button
+    button_down: Gtk.Button
 
+    def __init__(self):  # Directional Pad
         self.element = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         grid = Gtk.Grid()
         grid.set_column_homogeneous(True)

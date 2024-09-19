@@ -1,5 +1,7 @@
 from typing import Dict
 
+import cairo
+
 from globals import ObjectType
 from system.basics import Point
 from system.objects import (GraphicObject, LineSegmentObject, PointObject,
@@ -23,7 +25,7 @@ class Window(GraphicObject):
         self._points.append(coord_max)
         # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmax, Ymax)]
 
-    def draw(self, context, viewport_transform):
+    def draw(self, context: cairo.Context, viewport_transform):
         return super().draw(context, viewport_transform)
 
     def zoom_in(self, distance: int = 10):
@@ -35,28 +37,20 @@ class Window(GraphicObject):
         self._points[1] = self._points[1] + Point(distance, distance)
 
     def up(self, distance: int = 10):
-        self._points[0] = Point(
-            self._points[0].x, self._points[0].y + distance)
-        self._points[1] = Point(
-            self._points[1].x, self._points[1].y + distance)
+        self._points[0] = Point(self._points[0].x, self._points[0].y + distance)
+        self._points[1] = Point(self._points[1].x, self._points[1].y + distance)
 
     def left(self, distance: int = 10):
-        self._points[0] = Point(
-            self._points[0].x - distance, self._points[0].y)
-        self._points[1] = Point(
-            self._points[1].x - distance, self._points[1].y)
+        self._points[0] = Point(self._points[0].x - distance, self._points[0].y)
+        self._points[1] = Point(self._points[1].x - distance, self._points[1].y)
 
     def right(self, distance: int = 10):
-        self._points[0] = Point(
-            self._points[0].x + distance, self._points[0].y)
-        self._points[1] = Point(
-            self._points[1].x + distance, self._points[1].y)
+        self._points[0] = Point(self._points[0].x + distance, self._points[0].y)
+        self._points[1] = Point(self._points[1].x + distance, self._points[1].y)
 
     def down(self, distance: int = 10):
-        self._points[0] = Point(
-            self._points[0].x, self._points[0].y - distance)
-        self._points[1] = Point(
-            self._points[1].x, self._points[1].y - distance)
+        self._points[0] = Point(self._points[0].x, self._points[0].y - distance)
+        self._points[1] = Point(self._points[1].x, self._points[1].y - distance)
 
 
 class ViewPort:
@@ -74,14 +68,8 @@ class ViewPort:
 
     def transform(self, point: Point):
         w_points = self._window.points
-        vp_x = (
-            (point.x - w_points[0].x)
-            / (w_points[1].x - w_points[0].x)
-            * (self._size[0])
-        )
-        vp_y = (1 - ((point.y - w_points[0].y) / (w_points[1].y - w_points[0].y))) * (
-            self._size[1]
-        )
+        vp_x = ((point.x - w_points[0].x) / (w_points[1].x - w_points[0].x) * (self._size[0]))
+        vp_y = (1 - ((point.y - w_points[0].y) / (w_points[1].y - w_points[0].y))) * (self._size[1])
         return Point(vp_x, vp_y)
 
 
@@ -93,8 +81,8 @@ class DisplayFile:
         self._view_port = view_port
         self._objects = {}
 
-    def create_object(self, object_type, name, input, color) -> int:
-        new_input = [Point(*x) for x in input]
+    def create_object(self, object_type, name, input_data, color) -> int:
+        new_input = [Point(*x) for x in input_data]
         match object_type:
             case ObjectType.POINT:
                 obj = PointObject(name, new_input, color)
@@ -105,12 +93,12 @@ class DisplayFile:
         self._objects[obj.id] = obj
         return obj.id
 
-    def on_draw(self, context):
+    def on_draw(self, context: cairo.Context):
         for obj in self._objects.values():
             obj.draw(context, self._view_port.transform)
 
-    def get_object(self, id: int) -> GraphicObject:
-        return self._objects.get(id)
+    def get_object(self, object_id: int) -> GraphicObject:
+        return self._objects.get(object_id)
 
     def on_zoom_in(self):
         self._view_port.window.zoom_in()

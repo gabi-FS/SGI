@@ -6,18 +6,19 @@ from globals import RotationType, TransformationType
 
 
 class TransformWindow(Gtk.Window):
+    element: Gtk.Box
+    selected_object_id: int
+    notebook: Gtk.Notebook
+    _external_on_apply: Callable[[int, Dict[TransformationType, Any]], int]
 
-    _external_on_apply: Callable[[int, Dict[TransformationType, Any]], None]
-
-    def __init__(self, widget, selected_object_id: int, external_on_apply: Callable[[int, Dict[TransformationType, Any]], None]):
-        super().__init__(title=f"Transformação do objeto")
+    def __init__(self, widget: Gtk.Widget, selected_object_id: int, external_on_apply: Callable[[int, Dict[TransformationType, Any]], int]):
+        super().__init__(title="Transformação do objeto")
         self.selected_object_id = selected_object_id
         self._external_on_apply = external_on_apply
 
         self.set_modal(True)
         self.set_default_size(900, 300)
-        self.element = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.element.set_border_width(10)
         self.add(self.element)
 
@@ -26,9 +27,9 @@ class TransformWindow(Gtk.Window):
         self.rotation_page = RotationPage()
         self.scaling_page = ScalingPage()
 
-        self.notebook.append_page(self.translation_page.element,  Gtk.Label(label="Translação"))
-        self.notebook.append_page(self.rotation_page.element,  Gtk.Label(label="Rotação"))
-        self.notebook.append_page(self.scaling_page.element,  Gtk.Label(label="Escalonamento"))
+        self.notebook.append_page(self.translation_page.element, Gtk.Label(label="Translação"))
+        self.notebook.append_page(self.rotation_page.element, Gtk.Label(label="Rotação"))
+        self.notebook.append_page(self.scaling_page.element, Gtk.Label(label="Escalonamento"))
 
         button_box = Gtk.Box(spacing=6)
         button_box.set_halign(Gtk.Align.END)
@@ -58,13 +59,16 @@ class TransformWindow(Gtk.Window):
 
     def on_apply(self, _):
         if self._external_on_apply:
-            result = self._external_on_apply(
-                self.selected_object_id, self.create_input_object())
+            result = self._external_on_apply(self.selected_object_id, self.create_input_object())
             if result == 1:  # SUCCESSFUL
                 self.destroy()
 
 
-class TranslationPage():
+class TranslationPage:
+    element: Gtk.Box
+    entry_x: Gtk.Entry
+    entry_y: Gtk.Entry
+
     def __init__(self):
         self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.element.set_border_width(10)
@@ -90,14 +94,13 @@ class TranslationPage():
     def get_input_object(self):
         return {
             'x': self.entry_x.get_text(),
-            'y':  self.entry_y.get_text()
+            'y': self.entry_y.get_text()
         }
 
 
-class RotationPage():
+class RotationPage:
     def __init__(self):
-        self.element = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.element.set_border_width(10)
         self.buttons = []
         self.selected_radio = RotationType.WORLD_CENTER
@@ -149,7 +152,11 @@ class RotationPage():
         }
 
 
-class ScalingPage():
+class ScalingPage:
+    element: Gtk.Box
+    entry_x: Gtk.Entry
+    entry_y: Gtk.Entry
+
     def __init__(self):
         self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.element.set_border_width(10)
@@ -176,5 +183,5 @@ class ScalingPage():
     def get_input_object(self):
         return {
             'x': self.entry_x.get_text(),
-            'y':  self.entry_y.get_text()
+            'y': self.entry_y.get_text()
         }

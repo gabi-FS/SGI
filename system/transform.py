@@ -1,5 +1,4 @@
-import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
 
 import numpy as np
 
@@ -12,7 +11,7 @@ from utils import get_tuple_from_object, get_tuple_from_str
 class Transformation:
 
     @staticmethod
-    def get_transformed_points(object: GraphicObject, transform_input: Dict[TransformationType, Any]) -> list[Point]:
+    def get_transformed_points(graphic_object: GraphicObject, transform_input: Dict[TransformationType, Any]) -> list[Point]:
         """
         Dada a entrada e os dados do objeto, retorna novos pontos com as transformações aplicadas.
         """
@@ -22,14 +21,14 @@ class Transformation:
         transforming_matrix = Transformation.apply_translation(
             transforming_matrix, transform_input[TransformationType.TRANSLATION])
         transforming_matrix = Transformation.apply_scale(
-            transforming_matrix, transform_input[TransformationType.SCALING], object.center)
+            transforming_matrix, transform_input[TransformationType.SCALING], graphic_object.center)
         transforming_matrix = Transformation.apply_rotation(
-            transforming_matrix, transform_input[TransformationType.ROTATION], object.center)
+            transforming_matrix, transform_input[TransformationType.ROTATION], graphic_object.center)
 
         if np.array_equal(transforming_matrix, identity_matrix):
-            return object.points
+            return graphic_object.points
         else:
-            return Transformation.transform_points(object.points, transforming_matrix)
+            return Transformation.transform_points(graphic_object.points, transforming_matrix)
 
     @staticmethod
     def apply_translation(curr_matrix: np.array, data_input: Dict[str, str]) -> np.array:
@@ -59,7 +58,7 @@ class Transformation:
         Args:
             curr_matrix: current matrix (numpy array)
             data_input: dictionary with scaling data
-            object: object reference to get center for anchoring scaling
+            object_center: center for anchoring scaling
 
         Returns:
             resulting matrix (numpy array) applying scaling
@@ -78,7 +77,7 @@ class Transformation:
         Args:
             curr_matrix: current matrix (numpy array)
             data_input: dictionary with rotation data
-            object: object reference to get data for anchoring rotation (if necessary)
+            object_center: center for anchoring scaling (if necessary)
 
         Returns:
             resulting matrix (numpy array) applying rotation

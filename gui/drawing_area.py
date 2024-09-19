@@ -1,14 +1,14 @@
+from typing import Callable
+
+import cairo
 from gi.repository import Gdk, Gtk
 
 
-class DrawingArea():
-
-    """
+class DrawingArea:
     _element: Gtk.DrawingArea
-    _external_on_draw: Função que recebe o context do Cairo
-    _scroll_up: Função executada no scroll up
-    _scroll_down: Função executada no scroll down
-    """
+    _external_on_draw: Callable[[cairo.Context], None]
+    _scroll_up: Callable[[], None]
+    _scroll_down: Callable[[], None]
 
     def __init__(self, grid: Gtk.Grid, viewport_size):
         self._element = Gtk.DrawingArea()
@@ -23,11 +23,11 @@ class DrawingArea():
         grid.attach(self._element, 1, 0, 2, 2)
 
     def connect_on_draw(self, on_draw):
-        ''' Determina uma função que será executada no fluxo da on_draw'''
+        """ Determina uma função que será executada no fluxo da on_draw"""
         self._external_on_draw = on_draw
 
     def connect_scroll_up_down(self, scroll_up, scroll_down):
-        ''' Determina as funções para os eventos de scroll '''
+        """ Determina as funções para os eventos de scroll """
         self._scroll_up = scroll_up
         self._scroll_down = scroll_down
 
@@ -35,11 +35,11 @@ class DrawingArea():
         """ Força o redesenho da tela """
         self._element.queue_draw()
 
-    def _on_draw(self, _, context):
-        ''' Função que executa toda vez que o evento DRAW é disparado.
-        O evento pode ser forçado a ser executado utilizando .queue_draw() na adição de novos elementos.
-        '''
-
+    def _on_draw(self, _, context: cairo.Context):
+        """
+        Função que executa toda vez que o evento DRAW é disparado.
+        O evento pode ser forçado a ser executado utilizando queue_draw() na adição de novos elementos.
+        """
         if self._external_on_draw:
             self._external_on_draw(context)
 

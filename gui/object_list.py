@@ -6,12 +6,12 @@ from globals import TransformationType
 from gui.transform_window import TransformWindow
 
 
-class ObjectList():
+class ObjectList:
     selected_object: int
     element: Gtk.ScrolledWindow
     listbox: Gtk.ListBox
     _transform_button: Gtk.Button
-    _on_apply_transform: Callable[[int, Dict[TransformationType, Any]], None]
+    _on_apply_transform: Callable[[int, Dict[TransformationType, Any]], int]
 
     def __init__(self, parent_component):
         """ parent_component: MenuBox """
@@ -32,7 +32,7 @@ class ObjectList():
         self.listbox.add(self._create_row(item_text, object_id))
         self.listbox.show_all()  # Atualiza a exibição
 
-    def set_on_apply_transform(self, on_apply: Callable[[int, Dict[TransformationType, Any]], None]):
+    def set_on_apply_transform(self, on_apply: Callable[[int, Dict[TransformationType, Any]], int]):
         self._on_apply_transform = on_apply
 
     def _on_row_selected(self, _, row: Gtk.ListBoxRow):

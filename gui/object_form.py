@@ -4,10 +4,10 @@ from globals import ObjectType
 
 
 class ObjectForm:
-
     """ Formulário pra criação do objeto"""
 
     def __init__(self, menu_box):
+        self.on_submit = None
         self.object_radio = ObjectRadio()
         self.color_box = ColorBox()
         self.name_input = Gtk.Entry()
@@ -20,11 +20,9 @@ class ObjectForm:
         menu_box.add_element(Gtk.HSeparator())
         menu_box.add_element(self.color_box.element)
         menu_box.add_element(self.object_radio.element)
-        menu_box.add_element(self.create_form_label(
-            "Nome do objeto (Opcional):"))
+        menu_box.add_element(self.create_form_label("Nome do objeto (Opcional):"))
         menu_box.add_element(self.name_input)
-        menu_box.add_element(self.create_form_label(
-            "Coordenadas (Obrigatório):"))
+        menu_box.add_element(self.create_form_label("Coordenadas (Obrigatório):"))
         menu_box.add_element(self.coordinate_input)
         menu_box.add_element(self.submit_button)
         menu_box.add_element(Gtk.HSeparator())
@@ -61,8 +59,7 @@ class ObjectRadio:
         self.selected_type = ObjectType.POINT
         self.buttons = []
 
-        first_button = Gtk.RadioButton.new_with_label_from_widget(
-            None, "Ponto")
+        first_button = Gtk.RadioButton.new_with_label_from_widget(None, "Ponto")
         first_button.connect("toggled", self.on_toggle, self.selected_type)
         self.buttons.append(first_button)
 
@@ -73,8 +70,7 @@ class ObjectRadio:
             self.element.pack_start(button, False, False, 0)
 
     def add_button(self, name, object_type):
-        button = Gtk.RadioButton.new_with_label_from_widget(
-            self.buttons[0], name)
+        button = Gtk.RadioButton.new_with_label_from_widget(self.buttons[0], name)
         button.connect("toggled", self.on_toggle, object_type)
         self.buttons.append(button)
 
@@ -85,8 +81,7 @@ class ObjectRadio:
 
 class ColorBox:
     def __init__(self) -> None:
-        self.element = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.element = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         self.color_button = Gtk.ColorButton()
 
         self.color_button.connect("color-set", self.on_color_chosen)
@@ -104,6 +99,5 @@ class ColorBox:
         self.color = widget.get_rgba()
 
     def get_color_tuple(self) -> tuple[float]:
-        "Returns a tuple with the current color"
-
+        """Returns a tuple with the current color"""
         return (self.color.red, self.color.green, self.color.blue)
