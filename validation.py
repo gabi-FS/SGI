@@ -11,13 +11,12 @@ class ValidationError(Exception):
 
 
 class Validation:
-
     """ Levanta exceções quando recebe valores considerados inválidos. Não transforma entradas. """
 
     # TODO: Se necessário, criar lógica análoga a throwIfInvalid para melhorar legibilidade
 
     @staticmethod
-    def object_coordinates_input(input_list: List[Tuple[float]], object_type: ObjectType):
+    def object_coordinates_input(input_list: List[Tuple[float, float]], object_type: ObjectType):
         if len(input_list) == 0:
             raise ValidationError("Nenhuma tupla foi encontrada.")
 

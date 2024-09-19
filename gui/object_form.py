@@ -4,7 +4,7 @@ from globals import ObjectType
 
 
 class ObjectForm:
-    """ Formulário pra criação do objeto"""
+    """ Formulário para a criação do objeto"""
 
     def __init__(self, menu_box):
         self.on_submit = None

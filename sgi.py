@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Tuple
 
 from gi.repository import Gtk
 
-from globals import *
+from globals import WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE, ObjectType, TransformationType
 from gui.main_window import MainWindow
 from system.objects import Point
 from system.transform import Transformation
@@ -13,12 +13,11 @@ from validation import Validation, ValidationError
 
 class SGI:
     """
-    Sistema Gráfico Interativo: esta classe possui a criação dos principais elementos do sistemas,
+    Sistema Gráfico Interativo: esta classe possui a criação dos principais elementos do sistema,
     assim como os métodos do sistema que simbolizam as funcionalidades principais
-
-    main_window: MainWindow(GTK.Window)
-    display_file: DisplayFile
     """
+    main_window: MainWindow
+    display_file: DisplayFile
 
     def __init__(self):
         self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
@@ -47,11 +46,11 @@ class SGI:
         window_form.connect_zoom_buttons(self.zoom_in, self.zoom_out)
         window_form.connect_panning_buttons(self.go_up, self.go_left, self.go_right, self.go_down)
 
-    def add_object(self, object_type: ObjectType, name: str, input: str):
+    def add_object(self, object_type: ObjectType, name: str, input_str: str):
         """Função executada ao clicar em 'Adicionar objeto'"""
         try:
-            parsed_input: List[Tuple[float]] = parse_input(input)
-            Validation.object_coordinates_input(parsed_input, ObjectType)
+            parsed_input: List[Tuple[float, float]] = parse_input(input_str)
+            Validation.object_coordinates_input(parsed_input, object_type)
 
             name = name if name else object_type.name.title()
             object_id = self.display_file.create_object(
