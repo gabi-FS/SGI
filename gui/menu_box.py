@@ -18,7 +18,7 @@ class MenuBox:
         title_label = Gtk.Label()
         title_label.set_markup("<b>Menu de Funções</b>")
         self.add_element(title_label)
-        self.add_element(Gtk.HSeparator())
+        self.add_element(Gtk.Separator())
 
         # Atualmente, o acesso/conexão de botões e funções estarão ao nível de FORM.
         # Essa classe, então, sendo apenas um WRAPPER.

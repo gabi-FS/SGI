@@ -23,10 +23,10 @@ class ObjectList:
         self._transform_button.set_sensitive(False)
 
         parent_component.add_element(Gtk.Label(label="Objetos"))
-        parent_component.add_element(Gtk.HSeparator())
+        parent_component.add_element(Gtk.Separator())
         parent_component.add_element(self.element)
         parent_component.add_element(self._transform_button)
-        parent_component.add_element(Gtk.HSeparator())
+        parent_component.add_element(Gtk.Separator())
 
     def add_item(self, item_text: str, object_id: int):
         self.listbox.add(self._create_row(item_text, object_id))

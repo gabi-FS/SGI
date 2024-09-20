@@ -17,7 +17,7 @@ class ObjectForm:
         self.submit_button.connect("clicked", self.on_add)
 
         menu_box.add_element(Gtk.Label(label="Criação de objeto"))
-        menu_box.add_element(Gtk.HSeparator())
+        menu_box.add_element(Gtk.Separator())
         menu_box.add_element(self.color_box.element)
         menu_box.add_element(self.object_radio.element)
         menu_box.add_element(self.create_form_label("Nome do objeto (Opcional):"))
@@ -25,7 +25,7 @@ class ObjectForm:
         menu_box.add_element(self.create_form_label("Coordenadas (Obrigatório):"))
         menu_box.add_element(self.coordinate_input)
         menu_box.add_element(self.submit_button)
-        menu_box.add_element(Gtk.HSeparator())
+        menu_box.add_element(Gtk.Separator())
 
     def get_color(self) -> tuple[float]:
         return self.color_box.get_color_tuple()
