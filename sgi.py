@@ -45,6 +45,7 @@ class SGI:
         object_form.set_on_submit(self.add_object)
         window_form.connect_zoom_buttons(self.zoom_in, self.zoom_out)
         window_form.connect_panning_buttons(self.go_up, self.go_left, self.go_right, self.go_down)
+        # window_form.connect_rotate_window() TODO: Adicionar função de rotacionar window
 
     def add_object(self, object_type: ObjectType, name: str, input_str: str):
         """Função executada ao clicar em 'Adicionar objeto'"""
