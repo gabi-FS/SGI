@@ -1,8 +1,8 @@
 from gi.repository import Gtk
 
 from gui.drawing_area import DrawingArea
-from gui.menu_box import MenuBox
 from gui.menu_bar import MenuBar
+from gui.menu_box import MenuBox
 
 
 class MainWindow(Gtk.Window):
@@ -24,7 +24,7 @@ class MainWindow(Gtk.Window):
         self.drawing_area = DrawingArea(grid, viewport_size)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # vbox.pack_start(self.menu_bar.element, False, False, 0)
+        vbox.pack_start(self.menu_bar.element, False, False, 0)
         vbox.pack_start(grid, False, False, 0)
         self.add(vbox)
 

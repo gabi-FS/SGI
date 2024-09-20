@@ -16,6 +16,8 @@ class GraphicObject(ABC):
     _center: Point
     _type: ObjectType
     _color: tuple
+    _normalized_points: list[Point]
+    _normalized_center: Point
 
     def __init__(self, name: str, points: list, color) -> None:
         self._id = GraphicObject._id_increment
