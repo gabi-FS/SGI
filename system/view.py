@@ -4,8 +4,12 @@ import cairo
 
 from globals import ObjectType
 from system.basics import Point
-from system.objects import (GraphicObject, LineSegmentObject, PointObject,
-                            WireframeObject)
+from system.objects import (
+    GraphicObject,
+    LineSegmentObject,
+    PointObject,
+    WireframeObject,
+)
 
 
 class Window(GraphicObject):
@@ -13,44 +17,61 @@ class Window(GraphicObject):
     #                       o canto inferior esquerdo e o canto superior direito
 
     _name: str
-    _center: tuple[Point]
+    _center: Point
     _type: ObjectType
     _color: tuple
+    _normalized_points: list[Point]
+    _normalized_center: Point
 
     def __init__(self, initial_coord: Point, size: tuple[int, int]) -> None:
         self._name = "Window"
         self._type = ObjectType.POLYGON
         self._points = [initial_coord]
-        coord_max = Point(initial_coord.x + size[0], initial_coord.y + size[1])
-        self._points.append(coord_max)
-        # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmax, Ymax)]
+        self._points.append(Point(initial_coord.x, initial_coord.y + size[1]))
+        self._points.append(Point(initial_coord.x + size[0], initial_coord.y + size[1]))
+        self._points.append(Point(initial_coord.x + size[0], initial_coord.y))
+        # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmin, Ymax), (Xmax, Ymin), (Xmin, Ymin),]
+        self._normalized_points = [Point(-1, -1), Point(1, 1)]
+        self._normalized_center = Point(0, 0)
 
     def draw(self, context: cairo.Context, viewport_transform):
         return super().draw(context, viewport_transform)
 
     def zoom_in(self, distance: int = 10):
         self._points[0] = self._points[0] + Point(distance, distance)
-        self._points[1] = self._points[1] - Point(distance, distance)
+        self._points[1] = self._points[1] + Point(distance, -distance)
+        self._points[2] = self._points[2] - Point(distance, distance)
+        self._points[3] = self._points[3] - Point(distance, -distance)
 
     def zoom_out(self, distance: int = 10):
         self._points[0] = self._points[0] - Point(distance, distance)
-        self._points[1] = self._points[1] + Point(distance, distance)
+        self._points[1] = self._points[1] - Point(distance, -distance)
+        self._points[2] = self._points[2] + Point(distance, distance)
+        self._points[3] = self._points[3] + Point(distance, -distance)
 
     def up(self, distance: int = 10):
         self._points[0] = Point(self._points[0].x, self._points[0].y + distance)
         self._points[1] = Point(self._points[1].x, self._points[1].y + distance)
+        self._points[2] = Point(self._points[2].x, self._points[2].y + distance)
+        self._points[3] = Point(self._points[3].x, self._points[3].y + distance)
 
     def left(self, distance: int = 10):
         self._points[0] = Point(self._points[0].x - distance, self._points[0].y)
         self._points[1] = Point(self._points[1].x - distance, self._points[1].y)
+        self._points[2] = Point(self._points[2].x - distance, self._points[2].y)
+        self._points[3] = Point(self._points[3].x - distance, self._points[3].y)
 
     def right(self, distance: int = 10):
         self._points[0] = Point(self._points[0].x + distance, self._points[0].y)
         self._points[1] = Point(self._points[1].x + distance, self._points[1].y)
+        self._points[2] = Point(self._points[2].x + distance, self._points[2].y)
+        self._points[3] = Point(self._points[3].x + distance, self._points[3].y)
 
     def down(self, distance: int = 10):
         self._points[0] = Point(self._points[0].x, self._points[0].y - distance)
         self._points[1] = Point(self._points[1].x, self._points[1].y - distance)
+        self._points[2] = Point(self._points[2].x, self._points[2].y - distance)
+        self._points[3] = Point(self._points[3].x, self._points[3].y - distance)
 
 
 class ViewPort:
@@ -68,8 +89,14 @@ class ViewPort:
 
     def transform(self, point: Point):
         w_points = self._window.points
-        vp_x = ((point.x - w_points[0].x) / (w_points[1].x - w_points[0].x) * (self._size[0]))
-        vp_y = (1 - ((point.y - w_points[0].y) / (w_points[1].y - w_points[0].y))) * (self._size[1])
+        vp_x = (
+            (point.x - w_points[0].x)
+            / (w_points[2].x - w_points[0].x)
+            * (self._size[0])
+        )
+        vp_y = (1 - ((point.y - w_points[0].y) / (w_points[2].y - w_points[0].y))) * (
+            self._size[1]
+        )
         return Point(vp_x, vp_y)
 
 
