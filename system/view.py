@@ -10,6 +10,7 @@ from system.objects import (
     PointObject,
     WireframeObject,
 )
+from system.transform import Transformation
 
 
 class Window(GraphicObject):
@@ -25,6 +26,7 @@ class Window(GraphicObject):
 
     def __init__(self, initial_coord: Point, size: tuple[int, int]) -> None:
         self._name = "Window"
+        self._color = None
         self._type = ObjectType.POLYGON
         self._points = [initial_coord]
         self._points.append(Point(initial_coord.x, initial_coord.y + size[1]))
@@ -33,45 +35,53 @@ class Window(GraphicObject):
         # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmin, Ymax), (Xmax, Ymin), (Xmin, Ymin),]
         self._normalized_points = [Point(-1, -1), Point(1, 1)]
         self._normalized_center = Point(0, 0)
+        print(*self._points)
+        self.compute_center()
+        print(self._center)
 
     def draw(self, context: cairo.Context, viewport_transform):
         return super().draw(context, viewport_transform)
 
-    def zoom_in(self, distance: int = 10):
-        self._points[0] = self._points[0] + Point(distance, distance)
-        self._points[1] = self._points[1] + Point(distance, -distance)
-        self._points[2] = self._points[2] - Point(distance, distance)
-        self._points[3] = self._points[3] - Point(distance, -distance)
+    def scale(self, factor: float):
+        """
+        Scales the window using the given factor.
 
-    def zoom_out(self, distance: int = 10):
-        self._points[0] = self._points[0] - Point(distance, distance)
-        self._points[1] = self._points[1] - Point(distance, -distance)
-        self._points[2] = self._points[2] + Point(distance, distance)
-        self._points[3] = self._points[3] + Point(distance, -distance)
+        Args:
+            factor: sacling factor for scaling the window:
+                0 < factor < 1  : zoom in
+                factor > 1      : zoom out
+        """
+        matrix = Transformation.get_scaling_about_point(self._center, factor, factor)
+        self._points = Transformation.transform_points(self._points, matrix)
 
-    def up(self, distance: int = 10):
-        self._points[0] = Point(self._points[0].x, self._points[0].y + distance)
-        self._points[1] = Point(self._points[1].x, self._points[1].y + distance)
-        self._points[2] = Point(self._points[2].x, self._points[2].y + distance)
-        self._points[3] = Point(self._points[3].x, self._points[3].y + distance)
+    def zoom_in(self, amount: float = 0.05):
+        self.scale(1.0 - amount)
 
-    def left(self, distance: int = 10):
-        self._points[0] = Point(self._points[0].x - distance, self._points[0].y)
-        self._points[1] = Point(self._points[1].x - distance, self._points[1].y)
-        self._points[2] = Point(self._points[2].x - distance, self._points[2].y)
-        self._points[3] = Point(self._points[3].x - distance, self._points[3].y)
+    def zoom_out(self, amount: float = 0.05):
+        self.scale(1.0 + amount)
 
-    def right(self, distance: int = 10):
-        self._points[0] = Point(self._points[0].x + distance, self._points[0].y)
-        self._points[1] = Point(self._points[1].x + distance, self._points[1].y)
-        self._points[2] = Point(self._points[2].x + distance, self._points[2].y)
-        self._points[3] = Point(self._points[3].x + distance, self._points[3].y)
+    def translate(self, x, y):
+        """
+        Translates the window by a specified x and y distance.
+
+        Args:
+            x: translating factor in x axis
+            y: translating factor in y axis
+        """
+        matrix = Transformation.get_translation_matrix(x, y)
+        self._points = Transformation.transform_points(self._points, matrix)
+
+    def up(self, distance: float = 10):
+        self.translate(0, distance)
 
     def down(self, distance: int = 10):
-        self._points[0] = Point(self._points[0].x, self._points[0].y - distance)
-        self._points[1] = Point(self._points[1].x, self._points[1].y - distance)
-        self._points[2] = Point(self._points[2].x, self._points[2].y - distance)
-        self._points[3] = Point(self._points[3].x, self._points[3].y - distance)
+        self.translate(0, -distance)
+
+    def left(self, distance: float = 10):
+        self.translate(-distance, 0)
+
+    def right(self, distance: int = 10):
+        self.translate(distance, 0)
 
 
 class ViewPort:

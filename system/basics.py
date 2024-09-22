@@ -29,5 +29,28 @@ class Point:
     def __str__(self) -> str:
         return f"Point: x={self._x}, y={self._y}"
 
-    def get_homogeneous_matrix(self) -> np.matrix:
-        return np.matrix([self._x, self._y, 1.0])
+    def get_homogeneous_matrix(self) -> np.array:
+        return np.array([[self._x], [self._y], [1.0]])
+
+    def get_array(self) -> np.array:
+        return np.array([self._x, self._y])
+
+    def norm(self) -> float:
+        array = self.get_array()
+        return np.linalg.norm(array)
+
+    @classmethod
+    def inner_product(cls, vector1: "Point", vector2: "Point"):
+        """
+        Produto interno de 2 vetores
+        """
+        return (vector1.x * vector2.x) + (vector1.y * vector2.y)
+
+    @classmethod
+    def angle_between_vectors(cls, vector1: "Point", vector2: "Point"):
+        """
+        Retorna o ângulo entre 2 vetores
+        """
+        a = cls.inner_product(vector1, vector2)
+        b = vector1.norm() * vector2.norm()
+        return np.arccos(a / b)[0]

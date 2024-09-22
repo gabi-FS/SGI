@@ -11,7 +11,9 @@ from utils import get_tuple_from_object, get_tuple_from_str
 class Transformation:
 
     @staticmethod
-    def get_transformed_points(graphic_object: GraphicObject, transform_input: Dict[TransformationType, Any]) -> list[Point]:
+    def get_transformed_points(
+        graphic_object: GraphicObject, transform_input: Dict[TransformationType, Any]
+    ) -> list[Point]:
         """
         Dada a entrada e os dados do objeto, retorna novos pontos com as transformações aplicadas.
         """
@@ -19,19 +21,30 @@ class Transformation:
         transforming_matrix = identity_matrix
 
         transforming_matrix = Transformation.apply_translation(
-            transforming_matrix, transform_input[TransformationType.TRANSLATION])
+            transforming_matrix, transform_input[TransformationType.TRANSLATION]
+        )
         transforming_matrix = Transformation.apply_scale(
-            transforming_matrix, transform_input[TransformationType.SCALING], graphic_object.center)
+            transforming_matrix,
+            transform_input[TransformationType.SCALING],
+            graphic_object.center,
+        )
         transforming_matrix = Transformation.apply_rotation(
-            transforming_matrix, transform_input[TransformationType.ROTATION], graphic_object.center)
+            transforming_matrix,
+            transform_input[TransformationType.ROTATION],
+            graphic_object.center,
+        )
 
         if np.array_equal(transforming_matrix, identity_matrix):
             return graphic_object.points
         else:
-            return Transformation.transform_points(graphic_object.points, transforming_matrix)
+            return Transformation.transform_points(
+                graphic_object.points, transforming_matrix
+            )
 
     @staticmethod
-    def apply_translation(curr_matrix: np.array, data_input: Dict[str, str]) -> np.array:
+    def apply_translation(
+        curr_matrix: np.array, data_input: Dict[str, str]
+    ) -> np.array:
         """
         Method to apply translation matrix.
         It multiplies the current matrix by the translation from data input.
@@ -50,7 +63,9 @@ class Transformation:
         return curr_matrix @ Transformation.get_translation_matrix(x, y)
 
     @staticmethod
-    def apply_scale(curr_matrix, data_input: Dict[str, str], object_center: Point) -> np.array:
+    def apply_scale(
+        curr_matrix, data_input: Dict[str, str], object_center: Point
+    ) -> np.array:
         """
         Method to apply scaling matrix.
         It multiplies the current matrix by the scaling from data input and object center (anchor).
@@ -70,7 +85,9 @@ class Transformation:
         return curr_matrix @ Transformation.get_scaling_about_point(object_center, x, y)
 
     @staticmethod
-    def apply_rotation(curr_matrix: np.array, data_input: Dict[str, str], object_center: Point) -> np.array:
+    def apply_rotation(
+        curr_matrix: np.array, data_input: Dict[str, str], object_center: Point
+    ) -> np.array:
         """
         Method to apply rotation matrix. It multiplies the current matrix by the rotation from data input and object.
 
@@ -90,17 +107,21 @@ class Transformation:
             case RotationType.WORLD_CENTER:
                 rotation_matrix = Transformation.get_rotation_matrix(angle)
             case RotationType.OBJECT_CENTER:
-                rotation_matrix = Transformation.get_rotation_about_point(object_center, angle)
+                rotation_matrix = Transformation.get_rotation_about_point(
+                    object_center, angle
+                )
             case RotationType.AROUND_POINT:
                 numbers = get_tuple_from_str(data_input["point"])
-                rotation_matrix = Transformation.get_rotation_about_point(Point(*numbers), angle)
+                rotation_matrix = Transformation.get_rotation_about_point(
+                    Point(*numbers), angle
+                )
         return curr_matrix @ rotation_matrix
 
     @staticmethod
     def transform_points(points: list[Point], matrix: np.array) -> list[Point]:
         result = []
         for point in points:
-            coord = matrix @ np.array(point.get_homogeneous_matrix().T)
+            coord = matrix @ np.array(point.get_homogeneous_matrix())
             new_point = Point(coord[0, 0], coord[1, 0])
             result.append(new_point)
         return result
@@ -124,7 +145,9 @@ class Transformation:
         return trans_to_point @ rotation @ trans_back
 
     @staticmethod
-    def get_scaling_about_point(point: Point, x_factor: float, y_factor: float) -> np.array:
+    def get_scaling_about_point(
+        point: Point, x_factor: float, y_factor: float
+    ) -> np.array:
         """
         Method to build a scaling matrix about a point.
 
