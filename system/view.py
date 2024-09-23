@@ -95,6 +95,11 @@ class Window(GraphicObject):
     def right(self, distance: int = 10):
         self.translate(distance, 0)
 
+    def rotation(self, angle: float):
+        matrix = Transformation.get_rotation_about_point(self._center, angle)
+        self._points = Transformation.transform_points(self._points, matrix)
+        self.compute_center()
+
     def get_up_vector(self) -> Point:
         return (
             Point.get_geometric_center([self._points[1], self._points[2]])
@@ -212,4 +217,12 @@ class DisplayFile:
 
     def on_down(self):
         self._view_port.window.down()
+        self.update_normalization()
+
+    def on_rotate(self, angle: float):
+        """
+        Args:
+            angle: window rotation angle in degrees
+        """
+        self._view_port.window.rotation(angle)
         self.update_normalization()

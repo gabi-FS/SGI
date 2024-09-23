@@ -55,7 +55,7 @@ class SGI:
         window_form.connect_panning_buttons(
             self.go_up, self.go_left, self.go_right, self.go_down
         )
-        # window_form.connect_rotate_window() TODO: Adicionar função de rotacionar window
+        window_form.connect_rotate_window(self.rotate)
 
     def add_object(self, object_type: ObjectType, name: str, input_str: str):
         """Função executada ao clicar em 'Adicionar objeto'"""
@@ -118,4 +118,9 @@ class SGI:
 
     def go_down(self):
         self.display_file.on_down()
+        self.main_window.drawing_area.queue_draw()
+
+    def rotate(self, angle: str):
+        print(angle)
+        self.display_file.on_rotate(float(angle))
         self.main_window.drawing_area.queue_draw()
