@@ -219,10 +219,7 @@ class Transformation:
         return np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]])
 
     def set_normalizing_matrix(
-        self,
-        window_center: Point,
-        up_vector: Point,
-        scale: float,
+        self, window_center: Point, up_vector: Point, scale_x: float, scale_y: float
     ) -> np.array:
         matrix = self.get_translation_matrix(-window_center.x, -window_center.y)
         angulo = Point.angle_between_vectors(Point(0, 1), up_vector)
@@ -230,10 +227,11 @@ class Transformation:
         matrix = matrix @ self.get_rotation_about_point(
             window_center, -angulo
         )  ## talvez esteja em rad e tenha que mudar pra deg
-        matrix = matrix @ self.get_scaling_about_point(window_center, scale, scale)
+        matrix = matrix @ self.get_scaling_about_point(window_center, scale_x, scale_y)
         self._normalizing_matrix = matrix
         print("Normalizing")
         print(up_vector)
-        print(scale)
+        print(scale_x)
+        print(scale_y)
 
         return matrix

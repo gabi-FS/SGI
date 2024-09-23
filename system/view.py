@@ -23,6 +23,8 @@ class Window(GraphicObject):
     _color: tuple
     _normalized_points: list[Point]
     _normalized_center: Point
+    _scale_x: float
+    _scale_y: float
 
     def __init__(self, initial_coord: Point, size: tuple[int, int]) -> None:
         self._name = "Window"
@@ -40,12 +42,17 @@ class Window(GraphicObject):
             Point(1, -1),
         ]
         self._normalized_center = Point(0, 0)
-        self._scale = 2 / size[0]
+        self._scale_x = 2 / size[0]
+        self._scale_y = 2 / size[1]
         self.compute_center()
 
     @property
-    def scale(self):
-        return self._scale
+    def scale_x(self):
+        return self._scale_x
+
+    @property
+    def scale_y(self):
+        return self._scale_y
 
     def draw(self, context: cairo.Context, viewport_transform):
         return super().draw(context, viewport_transform)
@@ -61,8 +68,8 @@ class Window(GraphicObject):
         """
         matrix = Transformation.get_scaling_about_point(self._center, factor, factor)
         self._points = Transformation.transform_points(self._points, matrix)
-        self._scale *= factor
-        print(self._scale)
+        self._scale_x *= factor
+        self._scale_y *= factor
         self.compute_center()
 
     def zoom_in(self, amount: float = 0.05):
@@ -188,9 +195,8 @@ class DisplayFile:
 
     def update_normalization(self):
         window = self._view_port.window
-        print("scale: ", window.scale)
         matrix = self._transformation.set_normalizing_matrix(
-            window.center, window.get_up_vector(), window.scale
+            window.center, window.get_up_vector(), window.scale_x, window.scale_y
         )
         for obj in self._objects.values():
             self.normalize_object(obj)
