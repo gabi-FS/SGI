@@ -11,6 +11,7 @@ from system.objects import (
     WireframeObject,
 )
 from system.transform import Transformation
+import numpy as np
 
 
 class Window(GraphicObject):
@@ -78,7 +79,7 @@ class Window(GraphicObject):
     def zoom_out(self, amount: float = 0.05):
         self.scaling(1.0 - amount)
 
-    def translate(self, x, y):
+    def translate(self, transform: Transformation, x, y):
         """
         Translates the window by a specified x and y distance.
 
@@ -86,21 +87,25 @@ class Window(GraphicObject):
             x: translating factor in x axis
             y: translating factor in y axis
         """
-        matrix = Transformation.get_translation_matrix(x, y)
-        self._points = Transformation.transform_points(self._points, matrix)
+        angle = self.get_rotation_angle()
+        matrix = transform.get_rotation_about_point(self._center, angle)
+        matrix = matrix @ transform.get_translation_matrix(x, y)
+        matrix = matrix @ transform.get_rotation_about_point(self._center, -angle)
+        self._points = transform.transform_points(self._points, matrix)
         self.compute_center()
+        print("Translation angle: ", angle)
 
-    def up(self, distance: float = 10):
-        self.translate(0, distance)
+    def up(self, transform: Transformation, distance: float = 10):
+        self.translate(transform, 0, distance)
 
-    def down(self, distance: int = 10):
-        self.translate(0, -distance)
+    def down(self, transform: Transformation, distance: int = 10):
+        self.translate(transform, 0, -distance)
 
-    def left(self, distance: float = 10):
-        self.translate(-distance, 0)
+    def left(self, transform: Transformation, distance: float = 10):
+        self.translate(transform, -distance, 0)
 
-    def right(self, distance: int = 10):
-        self.translate(distance, 0)
+    def right(self, transform: Transformation, distance: int = 10):
+        self.translate(transform, distance, 0)
 
     def rotation(self, angle: float):
         matrix = Transformation.get_rotation_about_point(self._center, angle)
@@ -112,6 +117,12 @@ class Window(GraphicObject):
             Point.get_geometric_center([self._points[1], self._points[2]])
             - self._center
         )
+
+    def get_rotation_angle(self) -> float:
+        up_v = self.get_up_vector()
+        angulo = Point.angle_between_vectors(Point(0, 1), up_v)
+        angulo = np.rad2deg(angulo)
+        return angulo
 
 
 class ViewPort:
@@ -210,19 +221,19 @@ class DisplayFile:
         self.update_normalization()
 
     def on_up(self):
-        self._view_port.window.up()
+        self._view_port.window.up(self._transformation)
         self.update_normalization()
 
     def on_left(self):
-        self._view_port.window.left()
+        self._view_port.window.left(self._transformation)
         self.update_normalization()
 
     def on_right(self):
-        self._view_port.window.right()
+        self._view_port.window.right(self._transformation)
         self.update_normalization()
 
     def on_down(self):
-        self._view_port.window.down()
+        self._view_port.window.down(self._transformation)
         self.update_normalization()
 
     def on_rotate(self, angle: float):
