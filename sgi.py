@@ -89,11 +89,7 @@ class SGI:
         """
         try:
             Validation.object_transform_input(object_input)
-            graphic_object = self.display_file.get_object(object_id)
-            new_points = self.display_file.transformation.get_transformed_points(
-                graphic_object, object_input
-            )
-            graphic_object.update_points(new_points)
+            self.display_file.transform_object(object_id, object_input)
             self.main_window.drawing_area.queue_draw()
             return 1
         except ValidationError as e:

@@ -1,8 +1,8 @@
 from typing import Dict
-
+from typing import Any, Dict, List, Tuple
 import cairo
 
-from globals import ObjectType
+from globals import ObjectType, TransformationType
 from system.basics import Point
 from system.objects import (
     GraphicObject,
@@ -66,10 +66,10 @@ class Window(GraphicObject):
         self.compute_center()
 
     def zoom_in(self, amount: float = 0.05):
-        self.scaling(1.0 - amount)
+        self.scaling(1.0 + amount)
 
     def zoom_out(self, amount: float = 0.05):
-        self.scaling(1.0 + amount)
+        self.scaling(1.0 - amount)
 
     def translate(self, x, y):
         """
@@ -154,12 +154,25 @@ class DisplayFile:
                 obj = WireframeObject(name, new_input, color)
         self._objects[obj.id] = obj
 
+        self.normalize_object(obj)
+        return obj.id
+
+    def normalize_object(self, obj: GraphicObject):
         new_points = self._transformation.transform_points(
             obj.points, self._transformation.normalizing_matrix
         )
         obj.update_normalized_points(new_points)
         print(*new_points)
-        return obj.id
+
+    def transform_object(
+        self, object_id: int, object_input: Dict[TransformationType, Any]
+    ):
+        graphic_object = self.get_object(object_id)
+        new_points = self.transformation.get_transformed_points(
+            graphic_object, object_input
+        )
+        graphic_object.update_points(new_points)
+        self.normalize_object(graphic_object)
 
     def on_draw(self, context: cairo.Context):
         for obj in self._objects.values():
@@ -175,8 +188,7 @@ class DisplayFile:
             window.center, window.get_up_vector(), window.scale
         )
         for obj in self._objects.values():
-            new_points = self._transformation.transform_points(obj.points, matrix)
-            obj.update_normalized_points(new_points)
+            self.normalize_object(obj)
 
     def on_zoom_in(self):
         self._view_port.window.zoom_in()
