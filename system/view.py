@@ -32,17 +32,25 @@ class Window(GraphicObject):
         self._points.append(Point(initial_coord.x, initial_coord.y + size[1]))
         self._points.append(Point(initial_coord.x + size[0], initial_coord.y + size[1]))
         self._points.append(Point(initial_coord.x + size[0], initial_coord.y))
-        # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmin, Ymax), (Xmax, Ymin), (Xmin, Ymin),]
-        self._normalized_points = [Point(-1, -1), Point(1, 1)]
+        # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmin, Ymax), (Xmax, Ymax), (Xmax, Ymin),]
+        self._normalized_points = [
+            Point(-1, -1),
+            Point(-1, 1),
+            Point(1, 1),
+            Point(1, -1),
+        ]
         self._normalized_center = Point(0, 0)
-        print(*self._points)
+        self._scale = 2 / size[0]
         self.compute_center()
-        print(self._center)
+
+    @property
+    def scale(self):
+        return self._scale
 
     def draw(self, context: cairo.Context, viewport_transform):
         return super().draw(context, viewport_transform)
 
-    def scale(self, factor: float):
+    def scaling(self, factor: float):
         """
         Scales the window using the given factor.
 
@@ -53,12 +61,15 @@ class Window(GraphicObject):
         """
         matrix = Transformation.get_scaling_about_point(self._center, factor, factor)
         self._points = Transformation.transform_points(self._points, matrix)
+        self._scale *= factor
+        print(self._scale)
+        self.compute_center()
 
     def zoom_in(self, amount: float = 0.05):
-        self.scale(1.0 - amount)
+        self.scaling(1.0 - amount)
 
     def zoom_out(self, amount: float = 0.05):
-        self.scale(1.0 + amount)
+        self.scaling(1.0 + amount)
 
     def translate(self, x, y):
         """
@@ -70,6 +81,7 @@ class Window(GraphicObject):
         """
         matrix = Transformation.get_translation_matrix(x, y)
         self._points = Transformation.transform_points(self._points, matrix)
+        self.compute_center()
 
     def up(self, distance: float = 10):
         self.translate(0, distance)
@@ -82,6 +94,12 @@ class Window(GraphicObject):
 
     def right(self, distance: int = 10):
         self.translate(distance, 0)
+
+    def get_up_vector(self) -> Point:
+        return (
+            Point.get_geometric_center([self._points[1], self._points[2]])
+            - self._center
+        )
 
 
 class ViewPort:
@@ -98,7 +116,7 @@ class ViewPort:
         return self._window
 
     def transform(self, point: Point):
-        w_points = self._window.points
+        w_points = self._window.normalized_points
         vp_x = (
             (point.x - w_points[0].x)
             / (w_points[2].x - w_points[0].x)
@@ -113,10 +131,17 @@ class ViewPort:
 class DisplayFile:
     _objects: Dict[int, GraphicObject]
     _view_port: ViewPort
+    _transformation: Transformation
 
-    def __init__(self, view_port: ViewPort) -> None:
+    def __init__(self, view_port: ViewPort, transformation: Transformation) -> None:
         self._view_port = view_port
+        self._transformation = transformation
         self._objects = {}
+        self.update_normalization()
+
+    @property
+    def transformation(self) -> Transformation:
+        return self._transformation
 
     def create_object(self, object_type, name, input_data, color) -> int:
         new_input = [Point(*x) for x in input_data]
@@ -128,6 +153,12 @@ class DisplayFile:
             case ObjectType.POLYGON:
                 obj = WireframeObject(name, new_input, color)
         self._objects[obj.id] = obj
+
+        new_points = self._transformation.transform_points(
+            obj.points, self._transformation.normalizing_matrix
+        )
+        obj.update_normalized_points(new_points)
+        print(*new_points)
         return obj.id
 
     def on_draw(self, context: cairo.Context):
@@ -137,20 +168,36 @@ class DisplayFile:
     def get_object(self, object_id: int) -> GraphicObject:
         return self._objects.get(object_id)
 
+    def update_normalization(self):
+        window = self._view_port.window
+        print("scale: ", window.scale)
+        matrix = self._transformation.set_normalizing_matrix(
+            window.center, window.get_up_vector(), window.scale
+        )
+        for obj in self._objects.values():
+            new_points = self._transformation.transform_points(obj.points, matrix)
+            obj.update_normalized_points(new_points)
+
     def on_zoom_in(self):
         self._view_port.window.zoom_in()
+        self.update_normalization()
 
     def on_zoom_out(self):
         self._view_port.window.zoom_out()
+        self.update_normalization()
 
     def on_up(self):
         self._view_port.window.up()
+        self.update_normalization()
 
     def on_left(self):
         self._view_port.window.left()
+        self.update_normalization()
 
     def on_right(self):
         self._view_port.window.right()
+        self.update_normalization()
 
     def on_down(self):
         self._view_port.window.down()
+        self.update_normalization()

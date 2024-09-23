@@ -53,4 +53,19 @@ class Point:
         """
         a = cls.inner_product(vector1, vector2)
         b = vector1.norm() * vector2.norm()
-        return np.arccos(a / b)[0]
+        return np.arccos(a / b)
+
+    @classmethod
+    def get_geometric_center(cls, points: list["Point"]) -> "Point":
+        x_list = []
+        y_list = []
+        for p in points:
+            x_list.append(p.x)
+            y_list.append(p.y)
+
+        center_x = np.mean(x_list)
+        center_y = np.mean(y_list)
+
+        center = Point(center_x, center_y)
+
+        return center

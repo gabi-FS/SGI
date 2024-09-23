@@ -10,6 +10,15 @@ from utils import get_tuple_from_object, get_tuple_from_str
 
 class Transformation:
 
+    _normalizing_matrix: np.array
+
+    def __init__(self) -> None:
+        self._normalizing_matrix = np.identity(3)
+
+    @property
+    def normalizing_matrix(self):
+        return self._normalizing_matrix
+
     @staticmethod
     def get_transformed_points(
         graphic_object: GraphicObject, transform_input: Dict[TransformationType, Any]
@@ -208,3 +217,23 @@ class Transformation:
         cos = np.cos(angle_rad)[0]
         sin = np.sin(angle_rad)[0]
         return np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]])
+
+    def set_normalizing_matrix(
+        self,
+        window_center: Point,
+        up_vector: Point,
+        scale: float,
+    ) -> np.array:
+        matrix = self.get_translation_matrix(-window_center.x, -window_center.y)
+        angulo = Point.angle_between_vectors(Point(0, 1), up_vector)
+        angulo = np.rad2deg(angulo)
+        matrix = matrix @ self.get_rotation_about_point(
+            window_center, -angulo
+        )  ## talvez esteja em rad e tenha que mudar pra deg
+        matrix = matrix @ self.get_scaling_about_point(window_center, scale, scale)
+        self._normalizing_matrix = matrix
+        print("Normalizing")
+        print(up_vector)
+        print(scale)
+
+        return matrix
