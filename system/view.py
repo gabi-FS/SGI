@@ -100,9 +100,9 @@ class ViewPort:
     def transform(self, point: Point):
         w_points = self._window.points
         vp_x = (
-            (point.x - w_points[0].x)
-            / (w_points[2].x - w_points[0].x)
-            * (self._size[0])
+                (point.x - w_points[0].x)
+                / (w_points[2].x - w_points[0].x)
+                * (self._size[0])
         )
         vp_y = (1 - ((point.y - w_points[0].y) / (w_points[2].y - w_points[0].y))) * (
             self._size[1]
@@ -127,8 +127,11 @@ class DisplayFile:
                 obj = LineSegmentObject(name, new_input, color)
             case ObjectType.POLYGON:
                 obj = WireframeObject(name, new_input, color)
-        self._objects[obj.id] = obj
+        self.add_object(obj)
         return obj.id
+
+    def add_object(self, obj: GraphicObject):
+        self._objects[obj.id] = obj
 
     def on_draw(self, context: cairo.Context):
         for obj in self._objects.values():

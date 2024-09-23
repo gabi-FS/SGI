@@ -5,7 +5,7 @@ from gi.repository import Gtk
 
 class MenuBar:
     element: Gtk.MenuBar
-    import_function: Callable[[Any], Any]
+    import_function: Callable[[str], Any]
     export_function: Callable[[Any], Any]
 
     def __init__(self):
@@ -23,7 +23,10 @@ class MenuBar:
 
         self.element.append(file_menu_item)
 
-    def on_import(self, widget):
+    def connect_on_import(self, import_function: Callable[[str], None]):
+        self.import_function = import_function
+
+    def on_import(self, _):
         dialog = Gtk.FileChooserDialog(
             title="Selecione um arquivo",
             parent=self.element.get_toplevel(),
@@ -46,14 +49,15 @@ class MenuBar:
         response = dialog.run()
 
         if response == Gtk.ResponseType.OK:
-            filename = dialog.get_filename()
-            print("Arquivo selecionado:", filename)
+            if self.import_function:
+                self.import_function(dialog.get_filename())
+
         elif response == Gtk.ResponseType.CANCEL:
             print("Seleção cancelada")
 
         dialog.destroy()
 
-    def on_export(self, widget):
+    def on_export(self, _):
         dialog = Gtk.FileChooserDialog(
             title="Salvar arquivo como",
             parent=self.element.get_toplevel(),

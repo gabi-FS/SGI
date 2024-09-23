@@ -4,6 +4,7 @@ from gi.repository import Gtk
 
 from globals import WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE, ObjectType, TransformationType
 from gui.main_window import MainWindow
+from system.files import ObjFileHandler
 from system.objects import Point
 from system.transform import Transformation
 from system.view import DisplayFile, ViewPort, Window
@@ -37,6 +38,8 @@ class SGI:
         object_form = self.main_window.menu_box.object_form
         window_form = self.main_window.menu_box.window_form
         object_list = self.main_window.menu_box.object_list
+        
+        self.main_window.menu_bar.connect_on_import(self.import_objects)
 
         drawing_area.connect_on_draw(self.display_file.on_draw)
         drawing_area.connect_scroll_up_down(self.zoom_in, self.zoom_out)
@@ -83,6 +86,16 @@ class SGI:
         except ValidationError as e:
             print(f"Erro ao validar entradas: {e}")
             return -1  # Para manter a modal aberta no caso de problemas
+
+    def import_objects(self, filename: str):
+        object_descriptors = ObjFileHandler.read(filename)
+        for obj in object_descriptors:
+            graphic_obj = obj.get_2d_object()
+            if graphic_obj:
+                self.display_file.add_object(graphic_obj)
+                item_text = f"{obj.name}[{obj.type}]"
+                self.main_window.menu_box.object_list.add_item(item_text, graphic_obj.id)
+        self.main_window.drawing_area.queue_draw()
 
     def zoom_in(self):
         self.display_file.on_zoom_in()
