@@ -2,7 +2,13 @@ from typing import Any, Dict, List, Tuple
 
 from gi.repository import Gtk
 
-from globals import WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE, ObjectType, TransformationType
+from globals import (
+    WINDOW_WIDTH,
+    WINDOW_HEIGHT,
+    VIEWPORT_SIZE,
+    ObjectType,
+    TransformationType,
+)
 from gui.main_window import MainWindow
 from system.files import ObjFileHandler
 from system.objects import Point
@@ -17,6 +23,7 @@ class SGI:
     Sistema Gráfico Interativo: esta classe possui a criação dos principais elementos do sistema,
     assim como os métodos do sistema que simbolizam as funcionalidades principais
     """
+
     main_window: MainWindow
     display_file: DisplayFile
 
@@ -24,7 +31,8 @@ class SGI:
         self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
         window = Window(Point(0, 0), (VIEWPORT_SIZE, VIEWPORT_SIZE))
         viewport = ViewPort((VIEWPORT_SIZE, VIEWPORT_SIZE), window)
-        self.display_file = DisplayFile(viewport)
+        transformation = Transformation()
+        self.display_file = DisplayFile(viewport, transformation)
         self.connect()
 
     def run(self):
@@ -47,8 +55,10 @@ class SGI:
         object_list.set_on_apply_transform(self.transform_object)
         object_form.set_on_submit(self.add_object)
         window_form.connect_zoom_buttons(self.zoom_in, self.zoom_out)
-        window_form.connect_panning_buttons(self.go_up, self.go_left, self.go_right, self.go_down)
-        # window_form.connect_rotate_window() TODO: Adicionar função de rotacionar window
+        window_form.connect_panning_buttons(
+            self.go_up, self.go_left, self.go_right, self.go_down
+        )
+        window_form.connect_rotate_window(self.rotate)
 
     def add_object(self, object_type: ObjectType, name: str, input_str: str):
         """Função executada ao clicar em 'Adicionar objeto'"""
@@ -63,14 +73,18 @@ class SGI:
                 parsed_input,
                 self.main_window.menu_box.object_form.get_color(),
             )
-            self.main_window.menu_box.object_list.add_item(f"{object_type.name}[{name}]", object_id)
+            self.main_window.menu_box.object_list.add_item(
+                f"{object_type.name}[{name}]", object_id
+            )
             self.main_window.drawing_area.queue_draw()
         except (ValueError, SyntaxError, AttributeError) as e:
             print(f"Erro ao processar a string: {e}")
         except ValidationError as e:
             print(f"Erro ao validar entradas: {e}")
 
-    def transform_object(self, object_id: int, object_input: Dict[TransformationType, Any]) -> int:
+    def transform_object(
+        self, object_id: int, object_input: Dict[TransformationType, Any]
+    ) -> int:
         """
         object_input:
             TRANSLATION, SCALING: ['x': str, 'y': str]
@@ -78,9 +92,7 @@ class SGI:
         """
         try:
             Validation.object_transform_input(object_input)
-            graphic_object = self.display_file.get_object(object_id)
-            new_points = Transformation.get_transformed_points(graphic_object, object_input)
-            graphic_object.update_points(new_points)
+            self.display_file.transform_object(object_id, object_input)
             self.main_window.drawing_area.queue_draw()
             return 1
         except ValidationError as e:
@@ -119,4 +131,9 @@ class SGI:
 
     def go_down(self):
         self.display_file.on_down()
+        self.main_window.drawing_area.queue_draw()
+
+    def rotate(self, angle: str):
+        print(angle)
+        self.display_file.on_rotate(float(angle))
         self.main_window.drawing_area.queue_draw()
