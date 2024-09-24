@@ -137,7 +137,7 @@ class ViewPort:
     def window(self):
         return self._window
 
-    def transform(self, point: Point):
+    def transform(self, point: Point) -> Point:
         w_points = self._window.normalized_points
         vp_x = (
                 (point.x - w_points[0].x)

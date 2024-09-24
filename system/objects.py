@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Callable, List
 
 import cairo
-import numpy as np
 
 from globals import ObjectType
 from system.basics import Point
@@ -99,18 +99,51 @@ class LineSegmentObject(GraphicObject):
 
 
 class WireframeObject(GraphicObject):
-    def __init__(self, name: str, points: list, color) -> None:
+    _point_indexes: List[int]
+    _lines_indexes: List[List[int]]
+    _faces_indexes: List[List[int]]
+
+    def __init__(self, name: str, points: list, color, point_indexes=None, lines_indexes=None, faces_indexes=None) -> None:
         super().__init__(name, points, color)
         self._type = ObjectType.POLYGON
+        self._point_indexes = point_indexes if point_indexes is not None else []
+        self._lines_indexes = lines_indexes if lines_indexes is not None else []
+        self._faces_indexes = faces_indexes if faces_indexes is not None else []
+        if point_indexes is None and lines_indexes is None and faces_indexes is None:
+            self._lines_indexes = [list(range(len(points))) + [0]]
 
-    def draw(self, context: cairo.Context, viewport_transform):
-        first_point, *others = self._normalized_points
-        new_first_point = viewport_transform(first_point)
+    def draw(self, context: cairo.Context, viewport_transform: Callable[[Point], Point]):
+        transformed_points = [viewport_transform(point) for point in self._normalized_points]
 
-        for point in others:
-            end_point = viewport_transform(point)
-            super().draw_line(context, new_first_point, end_point)
-            new_first_point = end_point
+        for i in self._point_indexes:
+            point = transformed_points[i]
+            super().draw_line(context, point, Point(point.x + 1, point.y + 1))
 
-        new_end_point = viewport_transform(self._normalized_points[0])
-        super().draw_line(context, new_first_point, new_end_point)
+        for line in self._lines_indexes:
+            self._draw_line(context, transformed_points, line)
+
+        for face in self._faces_indexes:
+            self._draw_face(context, transformed_points, face)
+
+    def _draw_point(self, context: cairo.Context, points: List[Point], index: int):
+        point = points[index]
+        super().draw_line(context, point, Point(point.x + 1, point.y + 1))
+
+    def _draw_line(self, context: cairo.Context, points: List[Point], line_indexes: List[int]):
+        last_index, *others = line_indexes
+        for i in others:
+            point1 = points[last_index]
+            point2 = points[i]
+            last_index = i
+            super().draw_line(context, point1, point2)
+
+    def _draw_face(self, context: cairo.Context, points: List[Point], face_indexes: List[int]):
+        # TODO: SHOULD BE FILLED IN THE FUTURE.
+        last_index, *others = face_indexes
+        for i in others:
+            point1 = points[last_index]
+            point2 = points[i]
+            last_index = i
+            super().draw_line(context, point1, point2)
+        first_index = face_indexes[0]
+        super().draw_line(context, points[last_index], points[first_index])
