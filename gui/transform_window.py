@@ -2,7 +2,7 @@ from typing import Any, Callable, Dict
 
 from gi.repository import Gtk
 
-from globals import RotationType, TransformationType
+from globals import RotationType, TransformationType, TranslationType
 
 
 class TransformWindow(Gtk.Window):
@@ -11,7 +11,12 @@ class TransformWindow(Gtk.Window):
     notebook: Gtk.Notebook
     _external_on_apply: Callable[[int, Dict[TransformationType, Any]], int]
 
-    def __init__(self, widget: Gtk.Widget, selected_object_id: int, external_on_apply: Callable[[int, Dict[TransformationType, Any]], int]):
+    def __init__(
+        self,
+        widget: Gtk.Widget,
+        selected_object_id: int,
+        external_on_apply: Callable[[int, Dict[TransformationType, Any]], int],
+    ):
         super().__init__(title="Transformação do objeto")
         self.selected_object_id = selected_object_id
         self._external_on_apply = external_on_apply
@@ -27,9 +32,15 @@ class TransformWindow(Gtk.Window):
         self.rotation_page = RotationPage()
         self.scaling_page = ScalingPage()
 
-        self.notebook.append_page(self.translation_page.element, Gtk.Label(label="Translação"))
-        self.notebook.append_page(self.rotation_page.element, Gtk.Label(label="Rotação"))
-        self.notebook.append_page(self.scaling_page.element, Gtk.Label(label="Escalonamento"))
+        self.notebook.append_page(
+            self.translation_page.element, Gtk.Label(label="Translação")
+        )
+        self.notebook.append_page(
+            self.rotation_page.element, Gtk.Label(label="Rotação")
+        )
+        self.notebook.append_page(
+            self.scaling_page.element, Gtk.Label(label="Escalonamento")
+        )
 
         button_box = Gtk.Box(spacing=6)
         button_box.set_halign(Gtk.Align.END)
@@ -54,12 +65,14 @@ class TransformWindow(Gtk.Window):
         return {
             TransformationType.TRANSLATION: self.translation_page.get_input_object(),
             TransformationType.ROTATION: self.rotation_page.get_input_object(),
-            TransformationType.SCALING: self.scaling_page.get_input_object()
+            TransformationType.SCALING: self.scaling_page.get_input_object(),
         }
 
     def on_apply(self, _):
         if self._external_on_apply:
-            result = self._external_on_apply(self.selected_object_id, self.create_input_object())
+            result = self._external_on_apply(
+                self.selected_object_id, self.create_input_object()
+            )
             if result == 1:  # SUCCESSFUL
                 self.destroy()
 
@@ -70,11 +83,20 @@ class TranslationPage:
     entry_y: Gtk.Entry
 
     def __init__(self):
-        self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.element.set_border_width(10)
-        instructions = Gtk.Label(label="Aceita valores numéricos (positivos e negativos).")
+        instructions = Gtk.Label(
+            label="Aceita valores numéricos (positivos e negativos)."
+        )
         instructions.set_xalign(0)
         instructions.set_margin_bottom(10)
+
+        self.buttons = []
+        self.selected_radio = TranslationType.WORLD_AXIS
+        self.add_radio_button("Em relação ao eixo do mundo", TranslationType.WORLD_AXIS)
+        self.add_radio_button(
+            "Em relação ao eixo da janela", TranslationType.SCREEN_AXIS
+        )
 
         input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         input_box.set_border_width(10)
@@ -88,13 +110,30 @@ class TranslationPage:
         input_box.pack_start(self.entry_x, True, True, 0)
         input_box.pack_start(Gtk.Label(label="Y:"), False, False, 0)
         input_box.pack_start(self.entry_y, True, True, 0)
-        self.element.pack_start(input_box, False, False, 0)
+
         self.element.pack_start(instructions, False, False, 0)
+
+        for button in self.buttons:
+            self.element.pack_start(button, False, False, 0)
+        self.element.pack_start(input_box, False, False, 0)
+
+    def add_radio_button(self, name, radio_type):
+        if len(self.buttons) == 0:
+            button = Gtk.RadioButton.new_with_label_from_widget(None, name)
+        else:
+            button = Gtk.RadioButton.new_with_label_from_widget(self.buttons[0], name)
+        button.connect("toggled", self.on_toggle, radio_type)
+        self.buttons.append(button)
+
+    def on_toggle(self, button, radio_type):
+        if button.get_active():
+            self.selected_radio = radio_type
 
     def get_input_object(self):
         return {
-            'x': self.entry_x.get_text(),
-            'y': self.entry_y.get_text()
+            "x": self.entry_x.get_text(),
+            "y": self.entry_y.get_text(),
+            "type": self.selected_radio,
         }
 
 
@@ -105,7 +144,9 @@ class RotationPage:
         self.buttons = []
         self.selected_radio = RotationType.WORLD_CENTER
         self.add_radio_button("Em torno do centro do mundo", RotationType.WORLD_CENTER)
-        self.add_radio_button("Em torno do centro do objeto", RotationType.OBJECT_CENTER)
+        self.add_radio_button(
+            "Em torno do centro do objeto", RotationType.OBJECT_CENTER
+        )
         self.add_radio_button("Em torno de um ponto", RotationType.AROUND_POINT)
 
         main_input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
@@ -114,13 +155,19 @@ class RotationPage:
         angle_input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         self.angle_input = Gtk.Entry()
         self.angle_input.set_placeholder_text("0")
-        angle_input_box.pack_start(Gtk.Label(label="Ângulo (em graus):"), False, False, 0)
+        angle_input_box.pack_start(
+            Gtk.Label(label="Ângulo (em graus):"), False, False, 0
+        )
         angle_input_box.pack_start(self.angle_input, False, False, 0)
 
-        self.point_input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.point_input_box = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL, spacing=10
+        )
         self.point_input = Gtk.Entry()
         self.point_input.set_placeholder_text("(x, y)")
-        self.point_input_box.pack_start(Gtk.Label(label="Ponto de rotação:"), False, False, 0)
+        self.point_input_box.pack_start(
+            Gtk.Label(label="Ponto de rotação:"), False, False, 0
+        )
         self.point_input_box.pack_start(self.point_input, False, False, 0)
         self.point_input_box.set_sensitive(False)
 
@@ -146,9 +193,9 @@ class RotationPage:
 
     def get_input_object(self):
         return {
-            'type': self.selected_radio,
-            'angle': self.angle_input.get_text(),
-            'point': self.point_input.get_text()
+            "type": self.selected_radio,
+            "angle": self.angle_input.get_text(),
+            "point": self.point_input.get_text(),
         }
 
 
@@ -162,7 +209,8 @@ class ScalingPage:
         self.element.set_border_width(10)
 
         instructions = Gtk.Label(
-            label="Aceita valores numéricos;\nPara diminuir um objeto, insira um valor entre 0 e 1;\nPara aumentar um objeto, insira um valor maior que 1.")
+            label="Aceita valores numéricos;\nPara diminuir um objeto, insira um valor entre 0 e 1;\nPara aumentar um objeto, insira um valor maior que 1."
+        )
         instructions.set_xalign(0)
         instructions.set_margin_bottom(10)
 
@@ -181,7 +229,4 @@ class ScalingPage:
         self.element.pack_start(instructions, False, False, 0)
 
     def get_input_object(self):
-        return {
-            'x': self.entry_x.get_text(),
-            'y': self.entry_y.get_text()
-        }
+        return {"x": self.entry_x.get_text(), "y": self.entry_y.get_text()}

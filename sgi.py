@@ -89,6 +89,7 @@ class SGI:
         """
         try:
             Validation.object_transform_input(object_input)
+            print(object_input)
             self.display_file.transform_object(object_id, object_input)
             self.main_window.drawing_area.queue_draw()
             return 1

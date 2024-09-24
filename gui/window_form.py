@@ -27,15 +27,21 @@ class WindowForm:
         menu_box.add_element(self.element)
         menu_box.add_element(Gtk.Separator())
 
-    def connect_panning_buttons(self,
-                                on_up: Callable[[], None], on_left: Callable[[], None],
-                                on_right: Callable[[], None], on_down: Callable[[], None]):
+    def connect_panning_buttons(
+        self,
+        on_up: Callable[[], None],
+        on_left: Callable[[], None],
+        on_right: Callable[[], None],
+        on_down: Callable[[], None],
+    ):
         self._panning_box.external_on_button_up = on_up
         self._panning_box.external_on_button_left = on_left
         self._panning_box.external_on_button_right = on_right
         self._panning_box.external_on_button_down = on_down
 
-    def connect_zoom_buttons(self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]):
+    def connect_zoom_buttons(
+        self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
+    ):
         self._zoom_box.external_zoom_in = zoom_in
         self._zoom_box.external_zoom_out = zoom_out
 

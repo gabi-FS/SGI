@@ -12,12 +12,17 @@ class ObjectType(Enum):
 
 
 class TransformationType(Enum):
-    TRANSLATION = 1,
-    ROTATION = 2,
+    TRANSLATION = (1,)
+    ROTATION = (2,)
     SCALING = 3
 
 
 class RotationType(Enum):
-    WORLD_CENTER = 1,
-    OBJECT_CENTER = 2,
+    WORLD_CENTER = (1,)
+    OBJECT_CENTER = (2,)
     AROUND_POINT = 3
+
+
+class TranslationType(Enum):
+    WORLD_AXIS = 1
+    SCREEN_AXIS = 2

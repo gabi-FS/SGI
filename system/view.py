@@ -191,9 +191,6 @@ class DisplayFile:
         self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
-        # TODO: if vai aqui!
-        # se não passa window_angle e window_center, a função vai transladar em relação ao mundo;
-        # como está vai transladar em relação ao eixo da window
         new_points = self.transformation.get_transformed_points(
             graphic_object,
             object_input,

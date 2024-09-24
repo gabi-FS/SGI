@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import numpy as np
 
-from globals import RotationType, TransformationType
+from globals import RotationType, TransformationType, TranslationType
 from system.basics import Point
 from system.objects import GraphicObject
 from utils import get_tuple_from_object, get_tuple_from_str
@@ -23,8 +23,8 @@ class Transformation:
     def get_transformed_points(
         graphic_object: GraphicObject,
         transform_input: Dict[TransformationType, Any],
-        window_angle: float = None,
-        window_center: Point = None,
+        window_angle: float,
+        window_center: Point,
     ) -> list[Point]:
         """
         Dada a entrada e os dados do objeto, retorna novos pontos com as transformações aplicadas.
@@ -32,21 +32,12 @@ class Transformation:
         identity_matrix = np.identity(3)
         transforming_matrix = identity_matrix
 
-        if window_angle and window_center:  # translada em relação ao eixo da window
-            transforming_matrix = Transformation.get_rotation_about_point(
-                window_center, window_angle
-            )
-            transforming_matrix = Transformation.apply_translation(
-                transforming_matrix, transform_input[TransformationType.TRANSLATION]
-            )
-            transforming_matrix = (
-                transforming_matrix
-                @ Transformation.get_rotation_about_point(window_center, -window_angle)
-            )
-        else:
-            transforming_matrix = Transformation.apply_translation(
-                transforming_matrix, transform_input[TransformationType.TRANSLATION]
-            )
+        transforming_matrix = Transformation.apply_translation(
+            transforming_matrix,
+            transform_input[TransformationType.TRANSLATION],
+            window_angle,
+            window_center,
+        )
 
         transforming_matrix = Transformation.apply_scale(
             transforming_matrix,
@@ -68,7 +59,10 @@ class Transformation:
 
     @staticmethod
     def apply_translation(
-        curr_matrix: np.array, data_input: Dict[str, str]
+        curr_matrix: np.array,
+        data_input: Dict[str, str],
+        window_angle: float = None,
+        window_center: Point = None,
     ) -> np.array:
         """
         Method to apply translation matrix.
@@ -85,7 +79,24 @@ class Transformation:
             x, y = get_tuple_from_object(data_input, 0)
         except ValueError:
             return curr_matrix
-        return curr_matrix @ Transformation.get_translation_matrix(x, y)
+
+        trans_type = data_input["type"]
+        if trans_type == TranslationType.SCREEN_AXIS:
+            translation_matrix = Transformation.get_rotation_about_point(
+                window_center, window_angle
+            )
+
+            translation_matrix = (
+                translation_matrix @ Transformation.get_translation_matrix(x, y)
+            )
+            translation_matrix = (
+                translation_matrix
+                @ Transformation.get_rotation_about_point(window_center, -window_angle)
+            )
+        else:
+            translation_matrix = Transformation.get_translation_matrix(x, y)
+
+        return curr_matrix @ translation_matrix
 
     @staticmethod
     def apply_scale(
