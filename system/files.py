@@ -1,10 +1,8 @@
 from typing import List, Tuple
 
-from uaclient.api.u.apt_news.current_news.v1 import current_news
+import os
 
-from globals import ObjectType
 from system.basics import Point
-from system.objects import PointObject, GraphicObject, LineSegmentObject, WireframeObject
 
 
 class ObjectDescriptor:
@@ -15,7 +13,6 @@ class ObjectDescriptor:
     faces = List[Tuple[int, ...]]
     lines = List[Tuple[int, ...]]
     points = List[int]
-    type: ObjectType | None  # Preenchido no momento da criação do objeto
 
     def __init__(self, name: str):
         self.name = name
@@ -25,28 +22,43 @@ class ObjectDescriptor:
         self.points = []
         self.color = (1, 0, 0)  # Later, get from file
 
-    def get_2d_object(self) -> GraphicObject | None:
-        points = ObjectDescriptor.vertices_to_points(self.vertices)
-        match len(points):
-            case 0:
-                return None
-            case 1:
-                self.type = ObjectType.POINT
-                return PointObject(self.name, points, self.color)
-            case 2:
-                self.type = ObjectType.LINE
-                return LineSegmentObject(self.name, points, self.color)
-            case _:
-                self.type = ObjectType.POLYGON
-                return WireframeObject(self.name, points, self.color, self.points, self.lines, self.faces)
-
     @staticmethod
     def vertices_to_points(vertices: List[Tuple[float, float, float]]) -> List[Point]:
         return [Point(v[0], v[1]) for v in vertices]
 
+    def get_wavefront_str(self) -> str:
+        wavefront_str = f'o {self.name.replace(" ", "_")}\n'
+        for v in self.vertices:
+            wavefront_str += f'v {v[0]} {v[1]} {v[2]}\n'
+
+        if self.points:
+            p_string = "p " + " ".join(str(p) for p in self.points)
+            wavefront_str += p_string + '\n'
+
+        for line in self.lines:
+            l_string = "l " + " ".join(str(l) for l in line)
+            wavefront_str += l_string + '\n'
+
+        for face in self.faces:
+            f_string = "f " + " ".join(str(f) for f in face)
+            wavefront_str += f_string + '\n'
+
+        return wavefront_str
+
 
 class ObjFileHandler:
     """ Lida com o formato Wavefront.obj para o SGI"""
+
+    @staticmethod
+    def save(filename: str, object_list: List[ObjectDescriptor]):
+        archive_str = ''
+        for obj in object_list:
+            archive_str += obj.get_wavefront_str() + '\n'
+
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        with open(filename, 'w') as file:
+            file.write(archive_str)
 
     @staticmethod
     def read(filename: str) -> List[ObjectDescriptor]:

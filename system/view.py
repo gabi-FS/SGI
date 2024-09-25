@@ -3,6 +3,7 @@ import cairo
 
 from globals import ObjectType, TransformationType
 from system.basics import Point
+from system.files import ObjectDescriptor
 from system.objects import (
     GraphicObject,
     LineSegmentObject,
@@ -211,6 +212,9 @@ class DisplayFile:
 
     def get_object(self, object_id: int) -> GraphicObject:
         return self._objects.get(object_id)
+
+    def get_object_descriptors(self) -> list[ObjectDescriptor]:
+        return [obj.get_descriptor() for obj in self._objects.values()]
 
     def update_normalization(self):
         window = self._view_port.window
