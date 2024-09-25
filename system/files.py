@@ -1,5 +1,7 @@
 from typing import List, Tuple
 
+from uaclient.api.u.apt_news.current_news.v1 import current_news
+
 from globals import ObjectType
 from system.basics import Point
 from system.objects import PointObject, GraphicObject, LineSegmentObject, WireframeObject
@@ -10,37 +12,37 @@ class ObjectDescriptor:
 
     name: str
     vertices: List[Tuple[float, float, float]]
-    faces = List[Tuple[int, ...]]  # Utiliza índice iniciado em 1
+    faces = List[Tuple[int, ...]]
+    lines = List[Tuple[int, ...]]
+    points = List[int]
     type: ObjectType | None  # Preenchido no momento da criação do objeto
 
-    def __init__(self, name: str, vertices: List[Tuple[float, float, float]], faces: List[Tuple[int, ...]]):
+    def __init__(self, name: str):
         self.name = name
-        self.vertices = vertices
-        self.faces = faces
+        self.vertices = []
+        self.faces = []
+        self.lines = []
+        self.points = []
         self.color = (1, 0, 0)  # Later, get from file
 
     def get_2d_object(self) -> GraphicObject | None:
-        """ Atualmente, o máximo nível de objeto que nosso sistema desenha são polígonos.
-        Então, o desenho só permite uma face.
-        """
-        face = self.faces[0]
-        ordered_points = []
-        for i in face:
-            vertice = self.vertices[i - 1]
-            ordered_points.append(Point(vertice[0], vertice[1]))
-
-        match len(ordered_points):
+        points = ObjectDescriptor.vertices_to_points(self.vertices)
+        match len(points):
             case 0:
                 return None
             case 1:
                 self.type = ObjectType.POINT
-                return PointObject(self.name, ordered_points, self.color)
+                return PointObject(self.name, points, self.color)
             case 2:
                 self.type = ObjectType.LINE
-                return LineSegmentObject(self.name, ordered_points, self.color)
+                return LineSegmentObject(self.name, points, self.color)
             case _:
                 self.type = ObjectType.POLYGON
-                return WireframeObject(self.name, ordered_points, self.color)
+                return WireframeObject(self.name, points, self.color, self.points, self.lines, self.faces)
+
+    @staticmethod
+    def vertices_to_points(vertices: List[Tuple[float, float, float]]) -> List[Point]:
+        return [Point(v[0], v[1]) for v in vertices]
 
 
 class ObjFileHandler:
@@ -56,33 +58,48 @@ class ObjFileHandler:
             return []
 
         object_descriptors = []
-        name = ''
         vertices = []
-        faces = []
+        current_object = None
 
         for line in content:
-            parts = line.split()
-
-            if not parts or line.startswith('#'):
+            split_by_comment = line.split('#')
+            before_comment = split_by_comment[0]
+            if not before_comment:
                 continue
-
+            parts = before_comment.split()
+            if not parts:
+                continue
             prefix = parts[0]
+
             match prefix:
                 case 'o':
-                    if len(vertices) > 0:
-                        object_descriptors.append(ObjectDescriptor(name, vertices, faces))
-                    name = parts[1]
-                    vertices = []
-                    faces = []
+                    object_name = parts[1]
+                    current_object = ObjectDescriptor(object_name)
+                    object_descriptors.append(current_object)
                 case 'v':
                     x, y, z = map(float, parts[1:4])
                     vertices.append((x, y, z))
                 case 'f':
-                    line_content = line.split('#')[0]
-                    vertex_indices = tuple(int(p.split('/')[0]) for p in line_content.split()[1:])
-                    faces.append(vertex_indices)
-
-        if len(vertices) > 0:
-            object_descriptors.append(ObjectDescriptor(name, vertices, faces))
+                    new_face = ObjFileHandler._add_vertices_and_get_relative_indexes(vertices, parts[1:], current_object)
+                    current_object.faces.append(new_face)
+                case 'l':
+                    new_line = ObjFileHandler._add_vertices_and_get_relative_indexes(vertices, parts[1:], current_object)
+                    current_object.lines.append(new_line)
+                case 'p':
+                    new_points = ObjFileHandler._add_vertices_and_get_relative_indexes(vertices, parts[1:], current_object)
+                    current_object.points += new_points
 
         return object_descriptors
+
+    @staticmethod
+    def _add_vertices_and_get_relative_indexes(vertices: List[Tuple[float, float, float]], indexes: List[str], obj: ObjectDescriptor):
+        relative_indexes = []
+        for i in indexes:
+            index = int(i)
+            if index > 0:
+                index -= 1
+            vertice = vertices[index]
+            if vertice not in obj.vertices:
+                obj.vertices.append(vertice)
+            relative_indexes.append(obj.vertices.index(vertice))
+        return relative_indexes

@@ -114,10 +114,8 @@ class WireframeObject(GraphicObject):
 
     def draw(self, context: cairo.Context, viewport_transform: Callable[[Point], Point]):
         transformed_points = [viewport_transform(point) for point in self._normalized_points]
-
         for i in self._point_indexes:
-            point = transformed_points[i]
-            super().draw_line(context, point, Point(point.x + 1, point.y + 1))
+            self._draw_point(context, transformed_points, i)
 
         for line in self._lines_indexes:
             self._draw_line(context, transformed_points, line)
