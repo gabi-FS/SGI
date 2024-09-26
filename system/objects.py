@@ -44,7 +44,7 @@ class GraphicObject(ABC):
     @property
     def type(self) -> ObjectType:
         return self._type
-    
+
     @property
     def normalized_points(self) -> list[Point]:
         return self._normalized_points
@@ -84,6 +84,7 @@ class GraphicObject(ABC):
         descriptor = ObjectDescriptor(self._name)
         descriptor.vertices = [(p.x, p.y, 0.0) for p in self._points]
         descriptor.color = self._color
+        descriptor.id = self.id
         return descriptor
 
     @staticmethod

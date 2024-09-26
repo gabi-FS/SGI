@@ -8,6 +8,7 @@ from system.basics import Point
 class ObjectDescriptor:
     """ Descritor do objeto: armazena informações necessárias """
 
+    id: int
     name: str
     vertices: List[Tuple[float, float, float]]
     faces = List[Tuple[int, ...]]
@@ -15,6 +16,7 @@ class ObjectDescriptor:
     points = List[int]
 
     def __init__(self, name: str):
+        self.id = None
         self.name = name
         self.vertices = []
         self.faces = []
@@ -32,7 +34,7 @@ class ObjectDescriptor:
         for v in self.vertices:
             wavefront_str += f'v {v[0]} {v[1]} {v[2]}\n'
 
-        wavefront_str += f'usemtl {object_name}_material\n'
+        wavefront_str += f'usemtl {object_name}_material{self.id}\n'
 
         if self.points:
             p_string = "p " + " ".join(str(p) for p in self.points)
@@ -49,7 +51,7 @@ class ObjectDescriptor:
         return wavefront_str
 
     def get_mtl_str(self) -> str:
-        mtl_str = f'newmtl {self.name.replace(" ", "_")}_material\n'
+        mtl_str = f'newmtl {self.name.replace(" ", "_")}_material{self.id}\n'
         r, g, b = [float(i) for i in self.color]
         mtl_str += f'Kd {r} {g} {b}'
         return mtl_str
