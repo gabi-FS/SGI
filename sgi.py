@@ -10,7 +10,8 @@ from globals import (
     TransformationType,
 )
 from gui.main_window import MainWindow
-from system.objects import Point
+from system.files import ObjFileHandler
+from system.objects import Point, GraphicObject
 from system.transform import Transformation
 from system.view import DisplayFile, ViewPort, Window
 from utils import parse_input
@@ -46,6 +47,9 @@ class SGI:
         window_form = self.main_window.menu_box.window_form
         object_list = self.main_window.menu_box.object_list
 
+        self.main_window.menu_bar.connect_on_import(self.import_objects)
+        self.main_window.menu_bar.connect_on_export(self.export_objects)
+
         drawing_area.connect_on_draw(self.display_file.on_draw)
         drawing_area.connect_scroll_up_down(self.zoom_in, self.zoom_out)
 
@@ -80,7 +84,7 @@ class SGI:
             print(f"Erro ao validar entradas: {e}")
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ) -> int:
         """
         object_input:
@@ -96,6 +100,19 @@ class SGI:
         except ValidationError as e:
             print(f"Erro ao validar entradas: {e}")
             return -1  # Para manter a modal aberta no caso de problemas
+
+    def import_objects(self, filename: str):
+        object_descriptors = ObjFileHandler.read(filename)
+        for obj in object_descriptors:
+            graphic_obj = GraphicObject.get_2d_object(obj)
+            if graphic_obj:
+                self.display_file.add_object(graphic_obj)
+                item_text = f"{obj.name}[{graphic_obj.type}]"
+                self.main_window.menu_box.object_list.add_item(item_text, graphic_obj.id)
+        self.main_window.drawing_area.queue_draw()
+
+    def export_objects(self, filename: str):
+        ObjFileHandler.save(filename, self.display_file.get_object_descriptors())
 
     def zoom_in(self):
         self.display_file.on_zoom_in()

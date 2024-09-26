@@ -1,9 +1,9 @@
-from typing import Dict
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
 import cairo
 
 from globals import ObjectType, TransformationType
 from system.basics import Point
+from system.files import ObjectDescriptor
 from system.objects import (
     GraphicObject,
     LineSegmentObject,
@@ -114,8 +114,8 @@ class Window(GraphicObject):
 
     def get_up_vector(self) -> Point:
         return (
-            Point.get_geometric_center([self._points[1], self._points[2]])
-            - self._center
+                Point.get_geometric_center([self._points[1], self._points[2]])
+                - self._center
         )
 
     def get_rotation_angle(self) -> float:
@@ -138,12 +138,12 @@ class ViewPort:
     def window(self):
         return self._window
 
-    def transform(self, point: Point):
+    def transform(self, point: Point) -> Point:
         w_points = self._window.normalized_points
         vp_x = (
-            (point.x - w_points[0].x)
-            / (w_points[2].x - w_points[0].x)
-            * (self._size[0])
+                (point.x - w_points[0].x)
+                / (w_points[2].x - w_points[0].x)
+                * (self._size[0])
         )
         vp_y = (1 - ((point.y - w_points[0].y) / (w_points[2].y - w_points[0].y))) * (
             self._size[1]
@@ -175,10 +175,13 @@ class DisplayFile:
                 obj = LineSegmentObject(name, new_input, color)
             case ObjectType.POLYGON:
                 obj = WireframeObject(name, new_input, color)
-        self._objects[obj.id] = obj
-
+        self.add_object(obj)
         self.normalize_object(obj)
         return obj.id
+
+    def add_object(self, obj: GraphicObject):
+        self.normalize_object(obj)
+        self._objects[obj.id] = obj
 
     def normalize_object(self, obj: GraphicObject):
         new_points = self._transformation.transform_points(
@@ -188,7 +191,7 @@ class DisplayFile:
         print(*new_points)
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -206,6 +209,9 @@ class DisplayFile:
 
     def get_object(self, object_id: int) -> GraphicObject:
         return self._objects.get(object_id)
+
+    def get_object_descriptors(self) -> list[ObjectDescriptor]:
+        return [obj.get_descriptor() for obj in self._objects.values()]
 
     def update_normalization(self):
         window = self._view_port.window

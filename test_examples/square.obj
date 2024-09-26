@@ -1,0 +1,9 @@
+# Quadrado maior com ordem de face diferente
+
+o LargeSquareReordered
+v 200.0 200.0 0.0  # Vértice 1 (inferior esquerdo)
+v 550.0 200.0 0.0  # Vértice 2 (inferior direito)
+v 550.0 550.0 0.0  # Vértice 3 (superior direito)
+v 200.0 550.0 0.0  # Vértice 4 (superior esquerdo)
+
+f 2 1 -1 3

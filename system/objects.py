@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Callable, List
 
 import cairo
-import numpy as np
 
 from globals import ObjectType
 from system.basics import Point
+from system.files import ObjectDescriptor
 
 
 class GraphicObject(ABC):
@@ -41,6 +42,10 @@ class GraphicObject(ABC):
         return self._center
 
     @property
+    def type(self) -> ObjectType:
+        return self._type
+    
+    @property
     def normalized_points(self) -> list[Point]:
         return self._normalized_points
 
@@ -75,6 +80,30 @@ class GraphicObject(ABC):
         self._normalized_points = new_points
         self.compute_normalized_center()
 
+    def get_descriptor(self) -> ObjectDescriptor:
+        descriptor = ObjectDescriptor(self._name)
+        descriptor.vertices = [(p.x, p.y, 0.0) for p in self._points]
+        descriptor.color = self._color
+        return descriptor
+
+    @staticmethod
+    def get_2d_object(descriptor: ObjectDescriptor):
+        points = ObjectDescriptor.vertices_to_points(descriptor.vertices)
+        match len(points):
+            case 0:
+                return None
+            case 1:
+                return PointObject(descriptor.name, points, descriptor.color)
+            case 2:
+                return LineSegmentObject(descriptor.name, points, descriptor.color)
+            case _:
+                return WireframeObject(descriptor.name,
+                                       points,
+                                       descriptor.color,
+                                       descriptor.points,
+                                       descriptor.lines,
+                                       descriptor.faces)
+
 
 class PointObject(GraphicObject):
     def __init__(self, name: str, points: list, color) -> None:
@@ -85,6 +114,11 @@ class PointObject(GraphicObject):
         new_point = viewport_transform(self._normalized_points[0])
         second_point = Point(new_point.x + 1, new_point.y + 1)
         super().draw_line(context, new_point, second_point)
+
+    def get_descriptor(self) -> ObjectDescriptor:
+        descriptor = super().get_descriptor()
+        descriptor.points = [-1]
+        return descriptor
 
 
 class LineSegmentObject(GraphicObject):
@@ -97,20 +131,73 @@ class LineSegmentObject(GraphicObject):
         end_point = viewport_transform(self._normalized_points[1])
         super().draw_line(context, initial_point, end_point)
 
+    def get_descriptor(self) -> ObjectDescriptor:
+        descriptor = super().get_descriptor()
+        descriptor.lines = [(-2, -1)]
+        return descriptor
+
 
 class WireframeObject(GraphicObject):
-    def __init__(self, name: str, points: list, color) -> None:
+    _point_indexes: List[int]
+    _lines_indexes: List[List[int]]
+    _faces_indexes: List[List[int]]
+
+    def __init__(self, name: str, points: list, color, point_indexes=None, lines_indexes=None, faces_indexes=None) -> None:
         super().__init__(name, points, color)
         self._type = ObjectType.POLYGON
+        self._point_indexes = point_indexes if point_indexes is not None else []
+        self._lines_indexes = lines_indexes if lines_indexes is not None else []
+        self._faces_indexes = faces_indexes if faces_indexes is not None else []
+        if point_indexes is None and lines_indexes is None and faces_indexes is None:
+            self._lines_indexes = [list(range(len(points))) + [0]]
 
-    def draw(self, context: cairo.Context, viewport_transform):
-        first_point, *others = self._normalized_points
-        new_first_point = viewport_transform(first_point)
+    def draw(self, context: cairo.Context, viewport_transform: Callable[[Point], Point]):
+        transformed_points = [viewport_transform(point) for point in self._normalized_points]
+        for i in self._point_indexes:
+            self._draw_point(context, transformed_points, i)
 
-        for point in others:
-            end_point = viewport_transform(point)
-            super().draw_line(context, new_first_point, end_point)
-            new_first_point = end_point
+        for line in self._lines_indexes:
+            self._draw_line(context, transformed_points, line)
 
-        new_end_point = viewport_transform(self._normalized_points[0])
-        super().draw_line(context, new_first_point, new_end_point)
+        for face in self._faces_indexes:
+            self._draw_face(context, transformed_points, face)
+
+    def get_descriptor(self) -> ObjectDescriptor:
+        descriptor = super().get_descriptor()
+        len_vertices = len(self._points)
+        descriptor.points = [i - len_vertices for i in self._point_indexes]
+
+        new_lines = []
+        for line in self._lines_indexes:
+            new_lines.append([i - len_vertices for i in line])
+        descriptor.lines = new_lines
+
+        new_faces = []
+        for face in self._faces_indexes:
+            new_faces.append([i - len_vertices for i in face])
+        descriptor.faces = new_faces
+
+        return descriptor
+
+    def _draw_point(self, context: cairo.Context, points: List[Point], index: int):
+        point = points[index]
+        super().draw_line(context, point, Point(point.x + 1, point.y + 1))
+
+    def _draw_line(self, context: cairo.Context, points: List[Point], line_indexes: List[int]):
+        last_index, *others = line_indexes
+        for i in others:
+            point1 = points[last_index]
+            point2 = points[i]
+            last_index = i
+            super().draw_line(context, point1, point2)
+
+    def _draw_face(self, context: cairo.Context, points: List[Point], face_indexes: List[int]):
+        # TODO: SHOULD BE FILLED IN THE FUTURE.
+        last_index, *others = face_indexes
+        for i in others:
+            point1 = points[last_index]
+            point2 = points[i]
+            last_index = i
+            super().draw_line(context, point1, point2)
+        first_index = face_indexes[0]
+        super().draw_line(context, points[last_index], points[first_index])
