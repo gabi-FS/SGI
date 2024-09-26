@@ -113,10 +113,7 @@ class Window(GraphicObject):
         self.compute_center()
 
     def get_up_vector(self) -> Point:
-        return (
-                Point.get_geometric_center([self._points[1], self._points[2]])
-                - self._center
-        )
+        return self._points[2] - self._points[3]
 
     def get_rotation_angle(self) -> float:
         up_v = self.get_up_vector()
@@ -141,9 +138,9 @@ class ViewPort:
     def transform(self, point: Point) -> Point:
         w_points = self._window.normalized_points
         vp_x = (
-                (point.x - w_points[0].x)
-                / (w_points[2].x - w_points[0].x)
-                * (self._size[0])
+            (point.x - w_points[0].x)
+            / (w_points[2].x - w_points[0].x)
+            * (self._size[0])
         )
         vp_y = (1 - ((point.y - w_points[0].y) / (w_points[2].y - w_points[0].y))) * (
             self._size[1]
@@ -191,7 +188,7 @@ class DisplayFile:
         print(*new_points)
 
     def transform_object(
-            self, object_id: int, object_input: Dict[TransformationType, Any]
+        self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
