@@ -107,7 +107,7 @@ class SGI:
             graphic_obj = GraphicObject.get_2d_object(obj)
             if graphic_obj:
                 self.display_file.add_object(graphic_obj)
-                item_text = f"{obj.name}[{graphic_obj.type}]"
+                item_text = f"{graphic_obj.type.name}[{obj.name}]"
                 self.main_window.menu_box.object_list.add_item(item_text, graphic_obj.id)
         self.main_window.drawing_area.queue_draw()
 
