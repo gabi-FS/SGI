@@ -69,6 +69,8 @@ class ObjFileHandler:
             print(f"Erro ao abrir o arquivo: {e}")
             return []
 
+        obj_directory = os.path.dirname(filename)
+        materials = {}
         object_descriptors = []
         vertices = []
         current_object = None
@@ -84,24 +86,69 @@ class ObjFileHandler:
             prefix = parts[0]
 
             match prefix:
+                case 'mtllib':
+                    for filename in parts[1:]:
+                        mtl_file_path = os.path.join(obj_directory, filename)
+                        new_materials = ObjFileHandler.process_mtllib(mtl_file_path)
+                        materials.update(new_materials)
                 case 'o':
                     object_name = parts[1]
                     current_object = ObjectDescriptor(object_name)
                     object_descriptors.append(current_object)
+                case 'usemtl':
+                    material_name = parts[1]
+                    material = materials[material_name]
+                    if material and material['Kd']:
+                        current_object.color = material['Kd']
                 case 'v':
                     x, y, z = map(float, parts[1:4])
                     vertices.append((x, y, z))
                 case 'f':
-                    new_face = ObjFileHandler._add_vertices_and_get_relative_indexes(vertices, parts[1:], current_object)
+                    indexes = [part.split('/')[0] for part in parts[1:]]
+                    new_face = ObjFileHandler._add_vertices_and_get_relative_indexes(vertices, indexes, current_object)
                     current_object.faces.append(new_face)
                 case 'l':
-                    new_line = ObjFileHandler._add_vertices_and_get_relative_indexes(vertices, parts[1:], current_object)
+                    indexes = [part.split('/')[0] for part in parts[1:]]
+                    new_line = ObjFileHandler._add_vertices_and_get_relative_indexes(vertices, indexes, current_object)
                     current_object.lines.append(new_line)
                 case 'p':
                     new_points = ObjFileHandler._add_vertices_and_get_relative_indexes(vertices, parts[1:], current_object)
                     current_object.points += new_points
 
         return object_descriptors
+
+    @staticmethod
+    def process_mtllib(filename: str) -> dict:
+        try:
+            with open(filename, 'r', encoding='utf-8') as file:
+                content = file.readlines()
+        except Exception as e:
+            print(f"Erro ao abrir o arquivo: {e}")
+            return {}
+
+        current_material = None
+        materials = {}
+
+        for line in content:
+            split_by_comment = line.split('#')
+            before_comment = split_by_comment[0]
+            if not before_comment:
+                continue
+            parts = before_comment.split()
+            if not parts:
+                continue
+            prefix = parts[0]
+
+            match prefix:
+                case 'newmtl':
+                    current_material = {}
+                    material_name = parts[1]
+                    materials[material_name] = current_material
+                case 'Kd':
+                    r, g, b = [float(i) for i in parts[1:]]
+                    current_material['Kd'] = (r, g, b)
+
+        return materials
 
     @staticmethod
     def _add_vertices_and_get_relative_indexes(vertices: List[Tuple[float, float, float]], indexes: List[str], obj: ObjectDescriptor):
