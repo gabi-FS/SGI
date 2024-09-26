@@ -27,9 +27,12 @@ class ObjectDescriptor:
         return [Point(v[0], v[1]) for v in vertices]
 
     def get_wavefront_str(self) -> str:
-        wavefront_str = f'o {self.name.replace(" ", "_")}\n'
+        object_name = self.name.replace(" ", "_")
+        wavefront_str = f'o {object_name}\n'
         for v in self.vertices:
             wavefront_str += f'v {v[0]} {v[1]} {v[2]}\n'
+
+        wavefront_str += f'usemtl {object_name}_material\n'
 
         if self.points:
             p_string = "p " + " ".join(str(p) for p in self.points)
@@ -45,20 +48,35 @@ class ObjectDescriptor:
 
         return wavefront_str
 
+    def get_mtl_str(self) -> str:
+        mtl_str = f'newmtl {self.name.replace(" ", "_")}_material\n'
+        r, g, b = [float(i) for i in self.color]
+        mtl_str += f'Kd {r} {g} {b}'
+        return mtl_str
+
 
 class ObjFileHandler:
     """ Lida com o formato Wavefront.obj para o SGI"""
 
     @staticmethod
     def save(filename: str, object_list: List[ObjectDescriptor]):
-        archive_str = ''
+        obj_filename = os.path.basename(filename)
+        mtl_filename = obj_filename.replace(".obj", ".mtl")
+
+        obj_archive_str = f'mtllib {mtl_filename}\n'
+        mtl_archive_str = ''
         for obj in object_list:
-            archive_str += obj.get_wavefront_str() + '\n'
+            obj_archive_str += obj.get_wavefront_str() + '\n'
+            mtl_archive_str += obj.get_mtl_str() + '\n'
 
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-        with open(filename, 'w') as file:
-            file.write(archive_str)
+        with open(filename, 'w', encoding='utf-8') as obj_file:
+            obj_file.write(obj_archive_str)
+
+        mtl_file_path = os.path.join(os.path.dirname(filename), mtl_filename)
+        with open(mtl_file_path, 'w', encoding='utf-8') as mtl_file:
+            mtl_file.write(mtl_archive_str)
 
     @staticmethod
     def read(filename: str) -> List[ObjectDescriptor]:

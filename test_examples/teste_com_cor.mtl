@@ -1,0 +1,4 @@
+newmtl Polygon_material
+Kd 1.0 0.0 0.0
+newmtl triangulao_material
+Kd 0.8980392156862745 0.6470588235294118 0.0392156862745098
