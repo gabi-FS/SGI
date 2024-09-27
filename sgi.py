@@ -101,14 +101,17 @@ class SGI:
             return -1  # Para manter a modal aberta no caso de problemas
 
     def import_objects(self, filename: str):
-        object_descriptors = ObjFileHandler.read(filename)
-        for obj in object_descriptors:
-            graphic_obj = GraphicObject.get_2d_object(obj)
-            if graphic_obj:
-                self.display_file.add_object(graphic_obj)
-                item_text = f"{graphic_obj.type.name}[{obj.name}]"
-                self.main_window.menu_box.object_list.add_item(item_text, graphic_obj.id)
-        self.main_window.drawing_area.queue_draw()
+        try:
+            object_descriptors = ObjFileHandler.read(filename)
+            for obj in object_descriptors:
+                graphic_obj = GraphicObject.get_2d_object(obj)
+                if graphic_obj:
+                    self.display_file.add_object(graphic_obj)
+                    item_text = f"{graphic_obj.type.name}[{obj.name}]"
+                    self.main_window.menu_box.object_list.add_item(item_text, graphic_obj.id)
+            self.main_window.drawing_area.queue_draw()
+        except:
+            print("Erro ao importar objetos, arquivo possívelmente inválido.")
 
     def export_objects(self, filename: str):
         ObjFileHandler.save(filename, self.display_file.get_object_descriptors())

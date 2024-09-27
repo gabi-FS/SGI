@@ -6,7 +6,7 @@ from system.basics import Point
 
 
 class ObjectDescriptor:
-    """ Descritor do objeto: armazena informações necessárias """
+    """ Descritor do objeto: armazena informações necessárias para conversão wavefront → SGI e SGI → wavefront"""
 
     id: int
     name: str
@@ -22,7 +22,7 @@ class ObjectDescriptor:
         self.faces = []
         self.lines = []
         self.points = []
-        self.color = (1, 0, 0)  # Later, get from file
+        self.color = (1, 0, 0)  # DEFAULT VALUE
 
     @staticmethod
     def vertices_to_points(vertices: List[Tuple[float, float, float]]) -> List[Point]:
