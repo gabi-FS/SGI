@@ -9,7 +9,6 @@ from utils import get_tuple_from_object, get_tuple_from_str
 
 
 class Transformation:
-
     _normalizing_matrix: np.array
 
     def __init__(self) -> None:
@@ -21,10 +20,10 @@ class Transformation:
 
     @staticmethod
     def get_transformed_points(
-        graphic_object: GraphicObject,
-        transform_input: Dict[TransformationType, Any],
-        window_angle: float,
-        window_center: Point,
+            graphic_object: GraphicObject,
+            transform_input: Dict[TransformationType, Any],
+            window_angle: float,
+            window_center: Point,
     ) -> list[Point]:
         """
         Dada a entrada e os dados do objeto, retorna novos pontos com as transformações aplicadas.
@@ -59,10 +58,10 @@ class Transformation:
 
     @staticmethod
     def apply_translation(
-        curr_matrix: np.array,
-        data_input: Dict[str, str],
-        window_angle: float = None,
-        window_center: Point = None,
+            curr_matrix: np.array,
+            data_input: Dict[str, str],
+            window_angle: float = None,
+            window_center: Point = None,
     ) -> np.array:
         """
         Method to apply translation matrix.
@@ -87,11 +86,11 @@ class Transformation:
             )
 
             translation_matrix = (
-                translation_matrix @ Transformation.get_translation_matrix(x, y)
+                    translation_matrix @ Transformation.get_translation_matrix(x, y)
             )
             translation_matrix = (
-                translation_matrix
-                @ Transformation.get_rotation_about_point(window_center, -window_angle)
+                    translation_matrix
+                    @ Transformation.get_rotation_about_point(window_center, -window_angle)
             )
         else:
             translation_matrix = Transformation.get_translation_matrix(x, y)
@@ -100,7 +99,7 @@ class Transformation:
 
     @staticmethod
     def apply_scale(
-        curr_matrix, data_input: Dict[str, str], object_center: Point
+            curr_matrix, data_input: Dict[str, str], object_center: Point
     ) -> np.array:
         """
         Method to apply scaling matrix.
@@ -122,7 +121,7 @@ class Transformation:
 
     @staticmethod
     def apply_rotation(
-        curr_matrix: np.array, data_input: Dict[str, str], object_center: Point
+            curr_matrix: np.array, data_input: Dict[str, str], object_center: Point
     ) -> np.array:
         """
         Method to apply rotation matrix. It multiplies the current matrix by the rotation from data input and object.
@@ -182,7 +181,7 @@ class Transformation:
 
     @staticmethod
     def get_scaling_about_point(
-        point: Point, x_factor: float, y_factor: float
+            point: Point, x_factor: float, y_factor: float
     ) -> np.array:
         """
         Method to build a scaling matrix about a point.
@@ -207,8 +206,8 @@ class Transformation:
         Method to build a scaling matrix.
 
         Args:
-            x_factor: scaling factor in x axis
-            y_factor: scaling factor in y axis
+            x_factor: scaling factor in x-axis
+            y_factor: scaling factor in y-axis
 
         Returns:
             scaling matrix (numpy array)
@@ -221,8 +220,8 @@ class Transformation:
         Method to build a translation matrix.
 
         Args:
-            x_factor: translation factor in x axis
-            y_factor: translation factor in y axis
+            x_factor: translation factor in x-axis
+            y_factor: translation factor in y-axis
 
         Returns:
             translation matrix (numpy array)
@@ -246,41 +245,36 @@ class Transformation:
         return np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]])
 
     def rotation_normalizing_matrix(
-        self, window_center: Point, up_vector: Point
+            self, window_center: Point, up_vector: Point
     ) -> np.array:
         angulo = Point.angle_between_vectors(Point(0, 1), up_vector)
         angulo = np.rad2deg(angulo)
         matrix = self.get_rotation_about_point(
             window_center, angulo
-        )  ## está em rad e tem que mudar pra deg
+        )  # está em rad e tem que mudar para deg
 
         return matrix
 
     def rotation_denormalizing_matrix(
-        self, window_center: Point, up_vector: Point
+            self, window_center: Point, up_vector: Point
     ) -> np.array:
         angulo = Point.angle_between_vectors(Point(0, 1), up_vector)
         angulo = np.rad2deg(angulo)
         matrix = self.get_rotation_about_point(
             window_center, -angulo
-        )  ## está em rad e tem que mudar pra deg
+        )  # está em rad e tem que mudar para deg
 
         return matrix
 
     def set_normalizing_matrix(
-        self, window_center: Point, up_vector: Point, scale_x: float, scale_y: float
+            self, window_center: Point, up_vector: Point, scale_x: float, scale_y: float
     ) -> np.array:
         matrix = self.get_translation_matrix(-window_center.x, -window_center.y)
         angulo = Point.angle_between_vectors(Point(0, 1), up_vector)
         angulo = np.rad2deg(angulo)
         matrix = matrix @ self.get_rotation_about_point(
             window_center, -angulo
-        )  ## está em rad e tem que mudar pra deg
+        )  # está em rad e tem que mudar para deg
         matrix = matrix @ self.get_scaling_about_point(window_center, scale_x, scale_y)
         self._normalizing_matrix = matrix
-        print("\nNormalizing")
-        print(angulo)
-        print(scale_x)
-        print(scale_y)
-
         return matrix

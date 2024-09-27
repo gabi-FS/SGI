@@ -63,7 +63,7 @@ class Window(GraphicObject):
         Scales the window using the given factor.
 
         Args:
-            factor: sacling factor for scaling the window:
+            factor: scaling factor for scaling the window:
                 0 < factor < 1  : zoom in
                 factor > 1      : zoom out
         """
@@ -84,8 +84,9 @@ class Window(GraphicObject):
         Translates the window by a specified x and y distance.
 
         Args:
-            x: translating factor in x axis
-            y: translating factor in y axis
+            transform: transformation class
+            x: translating factor in x-axis
+            y: translating factor in y-axis
         """
         angle = self.get_rotation_angle()
         matrix = transform.get_rotation_about_point(self._center, angle)
@@ -93,7 +94,6 @@ class Window(GraphicObject):
         matrix = matrix @ transform.get_rotation_about_point(self._center, -angle)
         self._points = transform.transform_points(self._points, matrix)
         self.compute_center()
-        print("Translation angle: ", angle)
 
     def up(self, transform: Transformation, distance: float = 10):
         self.translate(transform, 0, distance)
@@ -138,9 +138,9 @@ class ViewPort:
     def transform(self, point: Point) -> Point:
         w_points = self._window.normalized_points
         vp_x = (
-            (point.x - w_points[0].x)
-            / (w_points[2].x - w_points[0].x)
-            * (self._size[0])
+                (point.x - w_points[0].x)
+                / (w_points[2].x - w_points[0].x)
+                * (self._size[0])
         )
         vp_y = (1 - ((point.y - w_points[0].y) / (w_points[2].y - w_points[0].y))) * (
             self._size[1]
@@ -185,10 +185,9 @@ class DisplayFile:
             obj.points, self._transformation.normalizing_matrix
         )
         obj.update_normalized_points(new_points)
-        print(*new_points)
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -212,7 +211,7 @@ class DisplayFile:
 
     def update_normalization(self):
         window = self._view_port.window
-        matrix = self._transformation.set_normalizing_matrix(
+        self._transformation.set_normalizing_matrix(
             window.center, window.get_up_vector(), window.scale_x, window.scale_y
         )
         for obj in self._objects.values():

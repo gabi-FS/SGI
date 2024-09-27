@@ -93,7 +93,6 @@ class SGI:
         """
         try:
             Validation.object_transform_input(object_input)
-            print(object_input)
             self.display_file.transform_object(object_id, object_input)
             self.main_window.drawing_area.queue_draw()
             return 1
@@ -139,6 +138,8 @@ class SGI:
         self.main_window.drawing_area.queue_draw()
 
     def rotate(self, angle: str):
-        print(angle)
-        self.display_file.on_rotate(float(angle))
-        self.main_window.drawing_area.queue_draw()
+        try:
+            self.display_file.on_rotate(float(angle))
+            self.main_window.drawing_area.queue_draw()
+        except ValueError:
+            print("Não foi possível converter entrada para numérico.")

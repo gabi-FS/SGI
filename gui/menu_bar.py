@@ -55,9 +55,6 @@ class MenuBar:
             if self.import_function:
                 self.import_function(dialog.get_filename())
 
-        elif response == Gtk.ResponseType.CANCEL:
-            print("Seleção cancelada")
-
         dialog.destroy()
 
     def on_export(self, _):
@@ -87,7 +84,5 @@ class MenuBar:
         if response == Gtk.ResponseType.OK:
             if self.export_function:
                 self.export_function(dialog.get_filename())
-        elif response == Gtk.ResponseType.CANCEL:
-            print("Ação cancelada")
 
         dialog.destroy()

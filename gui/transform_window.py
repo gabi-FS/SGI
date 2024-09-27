@@ -12,10 +12,10 @@ class TransformWindow(Gtk.Window):
     _external_on_apply: Callable[[int, Dict[TransformationType, Any]], int]
 
     def __init__(
-        self,
-        widget: Gtk.Widget,
-        selected_object_id: int,
-        external_on_apply: Callable[[int, Dict[TransformationType, Any]], int],
+            self,
+            widget: Gtk.Widget,
+            selected_object_id: int,
+            external_on_apply: Callable[[int, Dict[TransformationType, Any]], int],
     ):
         super().__init__(title="Transformação do objeto")
         self.selected_object_id = selected_object_id
@@ -111,11 +111,10 @@ class TranslationPage:
         input_box.pack_start(Gtk.Label(label="Y:"), False, False, 0)
         input_box.pack_start(self.entry_y, True, True, 0)
 
-        self.element.pack_start(instructions, False, False, 0)
-
         for button in self.buttons:
             self.element.pack_start(button, False, False, 0)
         self.element.pack_start(input_box, False, False, 0)
+        self.element.pack_start(instructions, False, False, 0)
 
     def add_radio_button(self, name, radio_type):
         if len(self.buttons) == 0:
