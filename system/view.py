@@ -30,7 +30,7 @@ class Window(GraphicObject):
     def __init__(self, initial_coord: Point, size: tuple[int, int]) -> None:
         self._name = "Window"
         self._color = None
-        self._type = ObjectType.POLYGON
+        self._type = ObjectType.WIREFRAME_POLYGON
         self._points = [initial_coord]
         self._points.append(Point(initial_coord.x, initial_coord.y + size[1]))
         self._points.append(Point(initial_coord.x + size[0], initial_coord.y + size[1]))
@@ -138,9 +138,9 @@ class ViewPort:
     def transform(self, point: Point) -> Point:
         w_points = self._window.normalized_points
         vp_x = (
-                (point.x - w_points[0].x)
-                / (w_points[2].x - w_points[0].x)
-                * (self._size[0])
+            (point.x - w_points[0].x)
+            / (w_points[2].x - w_points[0].x)
+            * (self._size[0])
         )
         vp_y = (1 - ((point.y - w_points[0].y) / (w_points[2].y - w_points[0].y))) * (
             self._size[1]
@@ -170,8 +170,13 @@ class DisplayFile:
                 obj = PointObject(name, new_input, color)
             case ObjectType.LINE:
                 obj = LineSegmentObject(name, new_input, color)
-            case ObjectType.POLYGON:
+            case ObjectType.WIREFRAME_POLYGON:
                 obj = WireframeObject(name, new_input, color)
+            case ObjectType.FILLED_POLYGON:
+                n_points = len(new_input)
+                obj = WireframeObject(
+                    name, new_input, color, faces_indexes=[list(range(n_points))]
+                )
         self.add_object(obj)
         self.normalize_object(obj)
         return obj.id
@@ -187,7 +192,7 @@ class DisplayFile:
         obj.update_normalized_points(new_points)
 
     def transform_object(
-            self, object_id: int, object_input: Dict[TransformationType, Any]
+        self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(

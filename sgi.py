@@ -84,7 +84,7 @@ class SGI:
             print(f"Erro ao validar entradas: {e}")
 
     def transform_object(
-            self, object_id: int, object_input: Dict[TransformationType, Any]
+        self, object_id: int, object_input: Dict[TransformationType, Any]
     ) -> int:
         """
         object_input:
@@ -108,7 +108,9 @@ class SGI:
                 if graphic_obj:
                     self.display_file.add_object(graphic_obj)
                     item_text = f"{graphic_obj.type.name}[{obj.name}]"
-                    self.main_window.menu_box.object_list.add_item(item_text, graphic_obj.id)
+                    self.main_window.menu_box.object_list.add_item(
+                        item_text, graphic_obj.id
+                    )
             self.main_window.drawing_area.queue_draw()
         except:
             print("Erro ao importar objetos, arquivo possívelmente inválido.")

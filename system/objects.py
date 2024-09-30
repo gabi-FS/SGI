@@ -64,6 +64,9 @@ class GraphicObject(ABC):
         context.line_to(point2.x, point2.y)
         context.stroke()
 
+    def draw_face(self, context: cairo.Context, point_list: list[Point]):
+        context.set_source_rgb(*self._color)
+
     def compute_center(self) -> Point:
         self._center = Point.get_geometric_center(self._points)
         return self._center
@@ -98,12 +101,14 @@ class GraphicObject(ABC):
             case 2:
                 return LineSegmentObject(descriptor.name, points, descriptor.color)
             case _:
-                return WireframeObject(descriptor.name,
-                                       points,
-                                       descriptor.color,
-                                       descriptor.points,
-                                       descriptor.lines,
-                                       descriptor.faces)
+                return WireframeObject(
+                    descriptor.name,
+                    points,
+                    descriptor.color,
+                    descriptor.points,
+                    descriptor.lines,
+                    descriptor.faces,
+                )
 
 
 class PointObject(GraphicObject):
@@ -143,17 +148,31 @@ class WireframeObject(GraphicObject):
     _lines_indexes: List[List[int]]
     _faces_indexes: List[List[int]]
 
-    def __init__(self, name: str, points: list, color, point_indexes=None, lines_indexes=None, faces_indexes=None) -> None:
+    def __init__(
+        self,
+        name: str,
+        points: list,
+        color,
+        point_indexes=None,
+        lines_indexes=None,
+        faces_indexes=None,
+    ) -> None:
         super().__init__(name, points, color)
-        self._type = ObjectType.POLYGON
+        self._type = ObjectType.FILLED_POLYGON
         self._point_indexes = point_indexes if point_indexes is not None else []
         self._lines_indexes = lines_indexes if lines_indexes is not None else []
         self._faces_indexes = faces_indexes if faces_indexes is not None else []
         if point_indexes is None and lines_indexes is None and faces_indexes is None:
+            self._type = ObjectType.WIREFRAME_POLYGON
             self._lines_indexes = [list(range(len(points))) + [0]]
 
-    def draw(self, context: cairo.Context, viewport_transform: Callable[[Point], Point]):
-        transformed_points = [viewport_transform(point) for point in self._normalized_points]
+    def draw(
+        self, context: cairo.Context, viewport_transform: Callable[[Point], Point]
+    ):
+        print("drawing wireframe")
+        transformed_points = [
+            viewport_transform(point) for point in self._normalized_points
+        ]
         for i in self._point_indexes:
             self._draw_point(context, transformed_points, i)
 
@@ -161,6 +180,7 @@ class WireframeObject(GraphicObject):
             self._draw_line(context, transformed_points, line)
 
         for face in self._faces_indexes:
+            print("drawing wireframe - FACE")
             self._draw_face(context, transformed_points, face)
 
     def get_descriptor(self) -> ObjectDescriptor:
@@ -184,7 +204,9 @@ class WireframeObject(GraphicObject):
         point = points[index]
         super().draw_line(context, point, Point(point.x + 1, point.y + 1))
 
-    def _draw_line(self, context: cairo.Context, points: List[Point], line_indexes: List[int]):
+    def _draw_line(
+        self, context: cairo.Context, points: List[Point], line_indexes: List[int]
+    ):
         last_index, *others = line_indexes
         for i in others:
             point1 = points[last_index]
@@ -192,13 +214,23 @@ class WireframeObject(GraphicObject):
             last_index = i
             super().draw_line(context, point1, point2)
 
-    def _draw_face(self, context: cairo.Context, points: List[Point], face_indexes: List[int]):
+    def _draw_face(
+        self, context: cairo.Context, points: List[Point], face_indexes: List[int]
+    ):
         # TODO: SHOULD BE FILLED IN THE FUTURE.
+        context.set_source_rgb(*self._color)
+
         last_index, *others = face_indexes
+        point1 = points[last_index]
+        context.move_to(point1.x, point1.y)
+        print(point1)
+
         for i in others:
-            point1 = points[last_index]
             point2 = points[i]
-            last_index = i
-            super().draw_line(context, point1, point2)
-        first_index = face_indexes[0]
-        super().draw_line(context, points[last_index], points[first_index])
+            print(point2)
+            context.line_to(point2.x, point2.y)
+        context.line_to(point1.x, point1.y)
+        print(point1)
+
+        context.close_path()
+        context.fill()

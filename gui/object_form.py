@@ -4,7 +4,7 @@ from globals import ObjectType
 
 
 class ObjectForm:
-    """ Formulário para a criação do objeto"""
+    """Formulário para a criação do objeto"""
 
     def __init__(self, menu_box):
         self.on_submit = None
@@ -64,7 +64,8 @@ class ObjectRadio:
         self.buttons.append(first_button)
 
         self.add_button("Reta", ObjectType.LINE)
-        self.add_button("Polígono", ObjectType.POLYGON)
+        self.add_button("Polígono (arame)", ObjectType.WIREFRAME_POLYGON)
+        self.add_button("Polígono (preenchido)", ObjectType.FILLED_POLYGON)
 
         for button in self.buttons:
             self.element.pack_start(button, False, False, 0)

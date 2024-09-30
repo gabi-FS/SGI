@@ -8,7 +8,8 @@ VIEWPORT_SIZE = 750
 class ObjectType(Enum):
     POINT = 1
     LINE = 2
-    POLYGON = 3
+    WIREFRAME_POLYGON = 3
+    FILLED_POLYGON = 4
 
 
 class TransformationType(Enum):

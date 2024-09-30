@@ -11,26 +11,37 @@ class ValidationError(Exception):
 
 
 class Validation:
-    """ Levanta exceções quando recebe valores considerados inválidos. Não transforma entradas. """
+    """Levanta exceções quando recebe valores considerados inválidos. Não transforma entradas."""
 
     # TODO: Se necessário, criar lógica análoga a throwIfInvalid para melhorar legibilidade
 
     @staticmethod
-    def object_coordinates_input(input_list: List[Tuple[float, float]], object_type: ObjectType):
+    def object_coordinates_input(
+        input_list: List[Tuple[float, float]], object_type: ObjectType
+    ):
         if len(input_list) == 0:
             raise ValidationError("Nenhuma tupla foi encontrada.")
 
         match object_type:
             case ObjectType.LINE:
                 if len(input_list) < 2:
-                    raise ValidationError("É necessário que uma linha possua mais que uma coordenada.")
-            case ObjectType.POLYGON:
+                    raise ValidationError(
+                        "É necessário que uma linha possua mais que uma coordenada."
+                    )
+            case ObjectType.WIREFRAME_POLYGON:
                 if len(input_list) < 2:
-                    raise ValidationError("É necessário que um polígono possua mais que uma coordenada.")
+                    raise ValidationError(
+                        "É necessário que um polígono possua mais que uma coordenada."
+                    )
+            case ObjectType.FILLED_POLYGON:
+                if len(input_list) < 2:
+                    raise ValidationError(
+                        "É necessário que um polígono possua mais que uma coordenada."
+                    )
 
     @staticmethod
     def object_transform_input(object_input: dict):
-        """ Aceita valores vazios, exceto para conjunto ângulo e ponto para tipo de rotação ao redor do ponto
+        """Aceita valores vazios, exceto para conjunto ângulo e ponto para tipo de rotação ao redor do ponto
         (os dois devem ser preenchidos ou os dois devem ser vazios)
         """
         try:
@@ -49,44 +60,51 @@ class Validation:
     def _translation(input_object: dict[str, str]):
         x, y = input_object["x"].strip(), input_object["y"].strip()
         try:
-            if x != '':
+            if x != "":
                 float(x)
-            if y != '':
+            if y != "":
                 float(y)
         except ValueError:
             raise ValidationError("Os valores de translação precisam ser numéricos")
 
     @staticmethod
     def _rotation(input_object: dict):
-        type_value = input_object['type']
-        angle_value = input_object['angle'].strip()
+        type_value = input_object["type"]
+        angle_value = input_object["angle"].strip()
         try:
-            if angle_value != '':
+            if angle_value != "":
                 float(angle_value)
         except ValueError:
             raise ValidationError("O valor do ângulo precisa ser numérico")
 
         if RotationType.AROUND_POINT == type_value:
-            point_value = input_object['point'].strip()
-            if angle_value != '':
-                if point_value == '':
+            point_value = input_object["point"].strip()
+            if angle_value != "":
+                if point_value == "":
                     raise ValidationError(
-                        "O ponto precisa ser preenchido caso o ângulo seja preenchido para esse tipo de rotação.")
+                        "O ponto precisa ser preenchido caso o ângulo seja preenchido para esse tipo de rotação."
+                    )
 
                 tuple_pattern = r"\(([^)]+)\)"
                 matches = re.findall(tuple_pattern, point_value)
                 if len(matches) != 1:
                     raise ValidationError("A entrada de ponto precisa de uma tupla.")
-                numbers = matches[0].split(',')
+                numbers = matches[0].split(",")
                 if len(numbers) != 2:
-                    raise ValidationError(f"Tupla inválida (deve conter exatamente dois elementos): {matches[0]}")
+                    raise ValidationError(
+                        f"Tupla inválida (deve conter exatamente dois elementos): {matches[0]}"
+                    )
                 try:
                     float(numbers[0].strip())
                     float(numbers[1].strip())
                 except ValueError:
-                    raise ValidationError("Os da tupla de pontos precisam ser numéricos")
+                    raise ValidationError(
+                        "Os da tupla de pontos precisam ser numéricos"
+                    )
             elif point_value != "":
-                raise ValidationError("Ângulo deve ser preenchido caso o ponto seja para esse tipo de rotação.")
+                raise ValidationError(
+                    "Ângulo deve ser preenchido caso o ponto seja para esse tipo de rotação."
+                )
 
     @staticmethod
     def _scaling(input_object: dict):
