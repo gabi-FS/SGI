@@ -6,6 +6,7 @@ import cairo
 from globals import ObjectType
 from system.basics import Point
 from system.files import ObjectDescriptor
+from system.clipping import Clipping
 
 
 class GraphicObject(ABC):
@@ -54,7 +55,13 @@ class GraphicObject(ABC):
         return self._normalized_center
 
     @abstractmethod
-    def draw(self, context, viewport_transform):
+    def draw(
+        self,
+        context,
+        viewport_transform: "function",
+        window_min: Point,
+        window_max: Point,
+    ):
         raise NotImplementedError
 
     def draw_line(self, context: cairo.Context, point1: Point, point2: Point):
@@ -63,9 +70,6 @@ class GraphicObject(ABC):
         context.move_to(point1.x, point1.y)
         context.line_to(point2.x, point2.y)
         context.stroke()
-
-    def draw_face(self, context: cairo.Context, point_list: list[Point]):
-        context.set_source_rgb(*self._color)
 
     def compute_center(self) -> Point:
         self._center = Point.get_geometric_center(self._points)
@@ -116,10 +120,17 @@ class PointObject(GraphicObject):
         super().__init__(name, points, color)
         self._type = ObjectType.POINT
 
-    def draw(self, context: cairo.Context, viewport_transform):
-        new_point = viewport_transform(self._normalized_points[0])
-        second_point = Point(new_point.x + 1, new_point.y + 1)
-        super().draw_line(context, new_point, second_point)
+    def draw(
+        self,
+        context: cairo.Context,
+        viewport_transform: "function",
+        window_min: Point,
+        window_max: Point,
+    ):
+        if Clipping.clip_point(window_max, window_min, self._normalized_points[0]):
+            new_point = viewport_transform(self._normalized_points[0])
+            second_point = Point(new_point.x + 1, new_point.y + 1)
+            super().draw_line(context, new_point, second_point)
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = super().get_descriptor()
@@ -132,7 +143,13 @@ class LineSegmentObject(GraphicObject):
         super().__init__(name, points, color)
         self._type = ObjectType.LINE
 
-    def draw(self, context: cairo.Context, viewport_transform):
+    def draw(
+        self,
+        context: cairo.Context,
+        viewport_transform: "function",
+        window_min: Point,
+        window_max: Point,
+    ):
         initial_point = viewport_transform(self._normalized_points[0])
         end_point = viewport_transform(self._normalized_points[1])
         super().draw_line(context, initial_point, end_point)
@@ -167,7 +184,11 @@ class WireframeObject(GraphicObject):
             self._lines_indexes = [list(range(len(points))) + [0]]
 
     def draw(
-        self, context: cairo.Context, viewport_transform: Callable[[Point], Point]
+        self,
+        context: cairo.Context,
+        viewport_transform: Callable[[Point], Point],
+        window_min: Point,
+        window_max: Point,
     ):
         print("drawing wireframe")
         transformed_points = [
@@ -180,7 +201,6 @@ class WireframeObject(GraphicObject):
             self._draw_line(context, transformed_points, line)
 
         for face in self._faces_indexes:
-            print("drawing wireframe - FACE")
             self._draw_face(context, transformed_points, face)
 
     def get_descriptor(self) -> ObjectDescriptor:
@@ -217,7 +237,6 @@ class WireframeObject(GraphicObject):
     def _draw_face(
         self, context: cairo.Context, points: List[Point], face_indexes: List[int]
     ):
-        # TODO: SHOULD BE FILLED IN THE FUTURE.
         context.set_source_rgb(*self._color)
 
         last_index, *others = face_indexes

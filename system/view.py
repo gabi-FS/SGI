@@ -11,6 +11,7 @@ from system.objects import (
     WireframeObject,
 )
 from system.transform import Transformation
+from system.clipping import Clipping
 import numpy as np
 
 
@@ -29,7 +30,7 @@ class Window(GraphicObject):
 
     def __init__(self, initial_coord: Point, size: tuple[int, int]) -> None:
         self._name = "Window"
-        self._color = None
+        self._color = (1, 0.886, 0)
         self._type = ObjectType.WIREFRAME_POLYGON
         self._points = [initial_coord]
         self._points.append(Point(initial_coord.x, initial_coord.y + size[1]))
@@ -55,8 +56,26 @@ class Window(GraphicObject):
     def scale_y(self):
         return self._scale_y
 
-    def draw(self, context: cairo.Context, viewport_transform):
-        return super().draw(context, viewport_transform)
+    def draw(
+        self,
+        context: cairo.Context,
+        viewport_transform,
+        window_min: Point = None,
+        window_max: Point = None,
+    ):
+        print("\nDRAW WINDOW")
+        first_point, *others = self._normalized_points
+        new_first_point = viewport_transform(first_point)
+
+        for point in others:
+            end_point = viewport_transform(point)
+            print(end_point)
+            super().draw_line(context, new_first_point, end_point)
+            new_first_point = end_point
+
+        new_end_point = viewport_transform(self._normalized_points[0])
+        print(new_end_point)
+        super().draw_line(context, new_first_point, new_end_point)
 
     def scaling(self, factor: float):
         """
@@ -125,11 +144,15 @@ class Window(GraphicObject):
 class ViewPort:
     _size: tuple[int, int]
     _window: Window  # viewport precisa ter acesso à window
+    _clipping_area: int
 
-    def __init__(self, size: tuple[int, int] = None, window: Window = None) -> None:
+    def __init__(
+        self, size: tuple[int, int] = None, window: Window = None, area: int = 0.05
+    ) -> None:
         if size and window:
             self._size = size
             self._window = window
+            self._clipping_area = area
 
     @property
     def window(self):
@@ -137,14 +160,13 @@ class ViewPort:
 
     def transform(self, point: Point) -> Point:
         w_points = self._window.normalized_points
-        vp_x = (
-            (point.x - w_points[0].x)
-            / (w_points[2].x - w_points[0].x)
-            * (self._size[0])
-        )
-        vp_y = (1 - ((point.y - w_points[0].y) / (w_points[2].y - w_points[0].y))) * (
-            self._size[1]
-        )
+        max_w = w_points[2] + Point(self._clipping_area, self._clipping_area)
+        min_w = w_points[0] - Point(self._clipping_area, self._clipping_area)
+        print(max_w)
+        print(min_w)
+
+        vp_x = (point.x - min_w.x) / (max_w.x - min_w.x) * (self._size[0])
+        vp_y = (1 - ((point.y - min_w.y) / (max_w.y - min_w.y))) * (self._size[1])
         return Point(vp_x, vp_y)
 
 
@@ -205,8 +227,14 @@ class DisplayFile:
         self.normalize_object(graphic_object)
 
     def on_draw(self, context: cairo.Context):
+        self._view_port.window.draw(context, self._view_port.transform)
         for obj in self._objects.values():
-            obj.draw(context, self._view_port.transform)
+            obj.draw(
+                context,
+                self._view_port.transform,
+                self._view_port.window.normalized_points[0],
+                self._view_port.window.normalized_points[2],
+            )
 
     def get_object(self, object_id: int) -> GraphicObject:
         return self._objects.get(object_id)
