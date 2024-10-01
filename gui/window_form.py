@@ -1,5 +1,5 @@
 from typing import Callable
-
+from globals import LineClippingType
 from gi.repository import Gtk
 
 
@@ -9,6 +9,7 @@ class WindowForm:
         self._zoom_box = ZoomBox()
         self._panning_box = PanningBox()
         self._rotation_input = RotationInput()
+        self._clipping_radio = ClippingRadio()
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         box.pack_start(self._zoom_box.element, False, False, 0)
@@ -18,6 +19,9 @@ class WindowForm:
         self.element.pack_start(self._rotation_input.element, False, False, 0)
         self.element.pack_start(Gtk.Separator(), False, False, 0)
         self.element.pack_start(box, False, False, 0)
+
+        self.element.pack_start(Gtk.Separator(), False, False, 0)
+        self.element.pack_start(self._clipping_radio.element, False, False, 0)
 
         title_label = Gtk.Label()
         title_label.set_markup("Janela")
@@ -156,3 +160,35 @@ class RotationInput:
         if self.rotate_window:
             self.rotate_window(self.angle_entry.get_text())
             self.angle_entry.set_text("")
+
+
+class ClippingRadio:
+    selected_type: LineClippingType
+
+    def __init__(self):
+        self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.selected_type = LineClippingType.Liang_Barsky
+        self.buttons = []
+
+        first_button = Gtk.RadioButton.new_with_label_from_widget(None, "Liang-Barsky")
+        first_button.connect("toggled", self.on_toggle, self.selected_type)
+        self.buttons.append(first_button)
+
+        self.add_button("Cohen-Sutherland", LineClippingType.Cohen_Sutherland)
+
+        clipping_label = Gtk.Label(label="Método de clipping de linhas")
+        clipping_label.set_xalign(0)
+
+        self.element.pack_start(clipping_label, False, False, 0)
+
+        for button in self.buttons:
+            self.element.pack_start(button, False, False, 0)
+
+    def add_button(self, name, object_type):
+        button = Gtk.RadioButton.new_with_label_from_widget(self.buttons[0], name)
+        button.connect("toggled", self.on_toggle, object_type)
+        self.buttons.append(button)
+
+    def on_toggle(self, button, type):
+        if button.get_active():
+            self.selected_type = type

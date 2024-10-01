@@ -1,7 +1,7 @@
 from typing import Any, Dict
 import cairo
 
-from globals import ObjectType, TransformationType
+from globals import ObjectType, TransformationType, LineClippingType
 from system.basics import Point
 from system.files import ObjectDescriptor
 from system.objects import (
@@ -145,9 +145,10 @@ class ViewPort:
     _size: tuple[int, int]
     _window: Window  # viewport precisa ter acesso à window
     _clipping_area: int
+    _clipping_type: LineClippingType
 
     def __init__(
-        self, size: tuple[int, int] = None, window: Window = None, area: int = 0.05
+        self, size: tuple[int, int] = None, window: Window = None, area: int = 0.005
     ) -> None:
         if size and window:
             self._size = size

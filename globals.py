@@ -30,5 +30,5 @@ class TranslationType(Enum):
 
 
 class LineClippingType(Enum):
-    NLN = 1
-    Liang_Barsky = 2
+    Liang_Barsky = 1
+    Cohen_Sutherland = 2

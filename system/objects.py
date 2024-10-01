@@ -151,7 +151,7 @@ class LineSegmentObject(GraphicObject):
         window_max: Point,
     ):
         # fazer um if pra toggle do algoritmo de clippagem
-        new_line = Clipping.liam_barsky(
+        new_line = Clipping.cohen_sutherland(
             window_max,
             window_min,
             self._normalized_points[0],
