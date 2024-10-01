@@ -63,18 +63,18 @@ class Window(GraphicObject):
         window_min: Point = None,
         window_max: Point = None,
     ):
-        print("\nDRAW WINDOW")
+
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)
 
         for point in others:
             end_point = viewport_transform(point)
-            print(end_point)
+
             super().draw_line(context, new_first_point, end_point)
             new_first_point = end_point
 
         new_end_point = viewport_transform(self._normalized_points[0])
-        print(new_end_point)
+
         super().draw_line(context, new_first_point, new_end_point)
 
     def scaling(self, factor: float):
@@ -162,8 +162,6 @@ class ViewPort:
         w_points = self._window.normalized_points
         max_w = w_points[2] + Point(self._clipping_area, self._clipping_area)
         min_w = w_points[0] - Point(self._clipping_area, self._clipping_area)
-        print(max_w)
-        print(min_w)
 
         vp_x = (point.x - min_w.x) / (max_w.x - min_w.x) * (self._size[0])
         vp_y = (1 - ((point.y - min_w.y) / (max_w.y - min_w.y))) * (self._size[1])
