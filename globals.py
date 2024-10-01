@@ -27,3 +27,8 @@ class RotationType(Enum):
 class TranslationType(Enum):
     WORLD_AXIS = 1
     SCREEN_AXIS = 2
+
+
+class LineClippingType(Enum):
+    NLN = 1
+    Liang_Barsky = 2

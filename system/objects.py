@@ -3,7 +3,7 @@ from typing import Callable, List
 
 import cairo
 
-from globals import ObjectType
+from globals import ObjectType, LineClippingType
 from system.basics import Point
 from system.files import ObjectDescriptor
 from system.clipping import Clipping
@@ -150,9 +150,17 @@ class LineSegmentObject(GraphicObject):
         window_min: Point,
         window_max: Point,
     ):
-        initial_point = viewport_transform(self._normalized_points[0])
-        end_point = viewport_transform(self._normalized_points[1])
-        super().draw_line(context, initial_point, end_point)
+        # fazer um if pra toggle do algoritmo de clippagem
+        new_line = Clipping.liam_barsky(
+            window_max,
+            window_min,
+            self._normalized_points[0],
+            self._normalized_points[1],
+        )
+        if new_line:
+            initial_point = viewport_transform(new_line[0])
+            end_point = viewport_transform(new_line[1])
+            super().draw_line(context, initial_point, end_point)
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = super().get_descriptor()
