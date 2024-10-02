@@ -2,16 +2,12 @@ from typing import Any, Dict, List, Tuple
 
 from gi.repository import Gtk
 
-from globals import (
-    WINDOW_WIDTH,
-    WINDOW_HEIGHT,
-    VIEWPORT_SIZE,
-    ObjectType,
-    TransformationType,
-)
+from globals import (DRAWING_AREA_SIZE, VIEWPORT_SIZE, WINDOW_HEIGHT,
+                     WINDOW_WIDTH, LineClippingType, ObjectType,
+                     TransformationType)
 from gui.main_window import MainWindow
 from system.files import ObjFileHandler
-from system.objects import Point, GraphicObject
+from system.objects import GraphicObject, Point
 from system.transform import Transformation
 from system.view import DisplayFile, ViewPort, Window
 from utils import parse_input
@@ -28,7 +24,7 @@ class SGI:
     display_file: DisplayFile
 
     def __init__(self):
-        self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
+        self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, DRAWING_AREA_SIZE)
         window = Window(Point(0, 0), (VIEWPORT_SIZE, VIEWPORT_SIZE))
         viewport = ViewPort((VIEWPORT_SIZE, VIEWPORT_SIZE), window)
         transformation = Transformation()
@@ -60,6 +56,7 @@ class SGI:
             self.go_up, self.go_left, self.go_right, self.go_down
         )
         window_form.connect_rotate_window(self.rotate)
+        window_form.connect_change_clipping(self.change_clipping_type)
 
     def add_object(self, object_type: ObjectType, name: str, input_str: str):
         """Função executada ao clicar em 'Adicionar objeto'"""
@@ -84,7 +81,7 @@ class SGI:
             print(f"Erro ao validar entradas: {e}")
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ) -> int:
         """
         object_input:
@@ -117,6 +114,10 @@ class SGI:
 
     def export_objects(self, filename: str):
         ObjFileHandler.save(filename, self.display_file.get_object_descriptors())
+
+    def change_clipping_type(self, new_type: LineClippingType):
+        self.display_file.change_clipping_type(new_type)
+        self.main_window.drawing_area.queue_draw()
 
     def zoom_in(self):
         self.display_file.on_zoom_in()

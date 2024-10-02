@@ -2,7 +2,8 @@ from enum import Enum
 
 WINDOW_WIDTH = 1125  # 1/3 Menu, 2/3 DrawingArea
 WINDOW_HEIGHT = 750
-VIEWPORT_SIZE = 750
+DRAWING_AREA_SIZE = 750
+VIEWPORT_SIZE = 730
 
 
 class ObjectType(Enum):
@@ -10,6 +11,7 @@ class ObjectType(Enum):
     LINE = 2
     WIREFRAME_POLYGON = 3
     FILLED_POLYGON = 4
+    POLYGON = 5
 
 
 class TransformationType(Enum):
@@ -30,5 +32,5 @@ class TranslationType(Enum):
 
 
 class LineClippingType(Enum):
-    Liang_Barsky = 1
-    Cohen_Sutherland = 2
+    LIANG_BARSKY = 1
+    COHEN_SUTHERLAND = 2

@@ -1,18 +1,15 @@
 from typing import Any, Dict
-import cairo
 
-from globals import ObjectType, TransformationType, LineClippingType
-from system.basics import Point
-from system.files import ObjectDescriptor
-from system.objects import (
-    GraphicObject,
-    LineSegmentObject,
-    PointObject,
-    WireframeObject,
-)
-from system.transform import Transformation
-from system.clipping import Clipping
+import cairo
 import numpy as np
+
+from globals import LineClippingType, ObjectType, TransformationType
+from system.basics import Point
+from system.clipping import Clipping
+from system.files import ObjectDescriptor
+from system.objects import (GraphicObject, LineSegmentObject, PointObject,
+                            WireframeObject)
+from system.transform import Transformation
 
 
 class Window(GraphicObject):
@@ -36,6 +33,7 @@ class Window(GraphicObject):
         self._points.append(Point(initial_coord.x, initial_coord.y + size[1]))
         self._points.append(Point(initial_coord.x + size[0], initial_coord.y + size[1]))
         self._points.append(Point(initial_coord.x + size[0], initial_coord.y))
+        print(self._points[0].x, self._points[0].y)
         # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmin, Ymax), (Xmax, Ymax), (Xmax, Ymin),]
         self._normalized_points = [
             Point(-1, -1),
@@ -57,19 +55,17 @@ class Window(GraphicObject):
         return self._scale_y
 
     def draw(
-        self,
-        context: cairo.Context,
-        viewport_transform,
-        window_min: Point = None,
-        window_max: Point = None,
+            self,
+            context: cairo.Context,
+            viewport_transform,
+            window_min: Point = None,
+            window_max: Point = None,
     ):
-
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)
 
         for point in others:
             end_point = viewport_transform(point)
-
             super().draw_line(context, new_first_point, end_point)
             new_first_point = end_point
 
@@ -148,7 +144,7 @@ class ViewPort:
     _clipping_type: LineClippingType
 
     def __init__(
-        self, size: tuple[int, int] = None, window: Window = None, area: int = 0.005
+            self, size: tuple[int, int] = None, window: Window = None, area: int = 0.005
     ) -> None:
         if size and window:
             self._size = size
@@ -173,30 +169,37 @@ class DisplayFile:
     _objects: Dict[int, GraphicObject]
     _view_port: ViewPort
     _transformation: Transformation
+    _clipping: Clipping
 
     def __init__(self, view_port: ViewPort, transformation: Transformation) -> None:
         self._view_port = view_port
         self._transformation = transformation
         self._objects = {}
+        self._clipping = Clipping(LineClippingType.LIANG_BARSKY)
         self.update_normalization()
 
     @property
     def transformation(self) -> Transformation:
         return self._transformation
 
+    def change_clipping_type(self, new_type: LineClippingType):
+        self._clipping.line_type = new_type
+
     def create_object(self, object_type, name, input_data, color) -> int:
         new_input = [Point(*x) for x in input_data]
+        n_points = len(new_input)
         match object_type:
             case ObjectType.POINT:
                 obj = PointObject(name, new_input, color)
             case ObjectType.LINE:
                 obj = LineSegmentObject(name, new_input, color)
             case ObjectType.WIREFRAME_POLYGON:
-                obj = WireframeObject(name, new_input, color)
-            case ObjectType.FILLED_POLYGON:
-                n_points = len(new_input)
                 obj = WireframeObject(
-                    name, new_input, color, faces_indexes=[list(range(n_points))]
+                    name, new_input, color, ObjectType.WIREFRAME_POLYGON, lines_indexes=[list(range(n_points)) + [0]]
+                )
+            case ObjectType.FILLED_POLYGON:
+                obj = WireframeObject(
+                    name, new_input, color, ObjectType.FILLED_POLYGON, faces_indexes=[list(range(n_points))]
                 )
         self.add_object(obj)
         self.normalize_object(obj)
@@ -213,7 +216,7 @@ class DisplayFile:
         obj.update_normalized_points(new_points)
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -233,6 +236,7 @@ class DisplayFile:
                 self._view_port.transform,
                 self._view_port.window.normalized_points[0],
                 self._view_port.window.normalized_points[2],
+                self._clipping
             )
 
     def get_object(self, object_id: int) -> GraphicObject:

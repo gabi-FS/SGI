@@ -1,6 +1,8 @@
 from typing import Callable
-from globals import LineClippingType
+
 from gi.repository import Gtk
+
+from globals import LineClippingType
 
 
 class WindowForm:
@@ -32,11 +34,11 @@ class WindowForm:
         menu_box.add_element(Gtk.Separator())
 
     def connect_panning_buttons(
-        self,
-        on_up: Callable[[], None],
-        on_left: Callable[[], None],
-        on_right: Callable[[], None],
-        on_down: Callable[[], None],
+            self,
+            on_up: Callable[[], None],
+            on_left: Callable[[], None],
+            on_right: Callable[[], None],
+            on_down: Callable[[], None],
     ):
         self._panning_box.external_on_button_up = on_up
         self._panning_box.external_on_button_left = on_left
@@ -44,13 +46,16 @@ class WindowForm:
         self._panning_box.external_on_button_down = on_down
 
     def connect_zoom_buttons(
-        self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
+            self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
     ):
         self._zoom_box.external_zoom_in = zoom_in
         self._zoom_box.external_zoom_out = zoom_out
 
     def connect_rotate_window(self, rotate_window: Callable[[str], None]):
         self._rotation_input.rotate_window = rotate_window
+
+    def connect_change_clipping(self, on_change):
+        self._clipping_radio.external_on_toggle = on_change
 
 
 class ZoomBox:
@@ -164,17 +169,20 @@ class RotationInput:
 
 class ClippingRadio:
     selected_type: LineClippingType
+    external_on_toggle: Callable
 
     def __init__(self):
         self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        self.selected_type = LineClippingType.Liang_Barsky
+        input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+
+        self.selected_type = LineClippingType.LIANG_BARSKY
         self.buttons = []
 
         first_button = Gtk.RadioButton.new_with_label_from_widget(None, "Liang-Barsky")
         first_button.connect("toggled", self.on_toggle, self.selected_type)
         self.buttons.append(first_button)
 
-        self.add_button("Cohen-Sutherland", LineClippingType.Cohen_Sutherland)
+        self.add_button("Cohen-Sutherland", LineClippingType.COHEN_SUTHERLAND)
 
         clipping_label = Gtk.Label(label="Método de clipping de linhas")
         clipping_label.set_xalign(0)
@@ -182,7 +190,9 @@ class ClippingRadio:
         self.element.pack_start(clipping_label, False, False, 0)
 
         for button in self.buttons:
-            self.element.pack_start(button, False, False, 0)
+            input_box.pack_start(button, False, False, 0)
+
+        self.element.pack_start(input_box, False, False, 0)
 
     def add_button(self, name, object_type):
         button = Gtk.RadioButton.new_with_label_from_widget(self.buttons[0], name)
@@ -192,3 +202,5 @@ class ClippingRadio:
     def on_toggle(self, button, type):
         if button.get_active():
             self.selected_type = type
+            if self.external_on_toggle:
+                self.external_on_toggle(type)

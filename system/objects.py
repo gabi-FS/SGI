@@ -3,10 +3,10 @@ from typing import Callable, List
 
 import cairo
 
-from globals import ObjectType, LineClippingType
+from globals import LineClippingType, ObjectType
 from system.basics import Point
-from system.files import ObjectDescriptor
 from system.clipping import Clipping
+from system.files import ObjectDescriptor
 
 
 class GraphicObject(ABC):
@@ -56,11 +56,12 @@ class GraphicObject(ABC):
 
     @abstractmethod
     def draw(
-        self,
-        context,
-        viewport_transform: "function",
-        window_min: Point,
-        window_max: Point,
+            self,
+            context,
+            viewport_transform: "function",
+            window_min: Point,
+            window_max: Point,
+            clipping: Clipping
     ):
         raise NotImplementedError
 
@@ -109,6 +110,7 @@ class GraphicObject(ABC):
                     descriptor.name,
                     points,
                     descriptor.color,
+                    ObjectType.POLYGON,
                     descriptor.points,
                     descriptor.lines,
                     descriptor.faces,
@@ -121,13 +123,14 @@ class PointObject(GraphicObject):
         self._type = ObjectType.POINT
 
     def draw(
-        self,
-        context: cairo.Context,
-        viewport_transform: "function",
-        window_min: Point,
-        window_max: Point,
+            self,
+            context: cairo.Context,
+            viewport_transform: "function",
+            window_min: Point,
+            window_max: Point,
+            clipping: Clipping
     ):
-        if Clipping.clip_point(window_max, window_min, self._normalized_points[0]):
+        if clipping.clip_point(window_max, window_min, self._normalized_points[0]):
             new_point = viewport_transform(self._normalized_points[0])
             second_point = Point(new_point.x + 1, new_point.y + 1)
             super().draw_line(context, new_point, second_point)
@@ -144,14 +147,14 @@ class LineSegmentObject(GraphicObject):
         self._type = ObjectType.LINE
 
     def draw(
-        self,
-        context: cairo.Context,
-        viewport_transform: "function",
-        window_min: Point,
-        window_max: Point,
+            self,
+            context: cairo.Context,
+            viewport_transform: "function",
+            window_min: Point,
+            window_max: Point,
+            clipping: Clipping
     ):
-        # fazer um if pra toggle do algoritmo de clippagem
-        new_line = Clipping.cohen_sutherland(
+        new_line = clipping.clip_line(
             window_max,
             window_min,
             self._normalized_points[0],
@@ -174,42 +177,41 @@ class WireframeObject(GraphicObject):
     _faces_indexes: List[List[int]]
 
     def __init__(
-        self,
-        name: str,
-        points: list,
-        color,
-        point_indexes=None,
-        lines_indexes=None,
-        faces_indexes=None,
+            self,
+            name: str,
+            points: list,
+            color,
+            wtype=ObjectType.POLYGON,
+            point_indexes=None,
+            lines_indexes=None,
+            faces_indexes=None,
     ) -> None:
         super().__init__(name, points, color)
-        self._type = ObjectType.FILLED_POLYGON
+        self._type = wtype
         self._point_indexes = point_indexes if point_indexes is not None else []
         self._lines_indexes = lines_indexes if lines_indexes is not None else []
         self._faces_indexes = faces_indexes if faces_indexes is not None else []
-        if point_indexes is None and lines_indexes is None and faces_indexes is None:
-            self._type = ObjectType.WIREFRAME_POLYGON
-            self._lines_indexes = [list(range(len(points))) + [0]]
 
     def draw(
-        self,
-        context: cairo.Context,
-        viewport_transform: Callable[[Point], Point],
-        window_min: Point,
-        window_max: Point,
+            self,
+            context: cairo.Context,
+            viewport_transform: Callable[[Point], Point],
+            window_min: Point,
+            window_max: Point,
+            clipping: Clipping
     ):
         print("drawing wireframe")
         transformed_points = [
             viewport_transform(point) for point in self._normalized_points
         ]
         for i in self._point_indexes:
-            self._draw_point(context, transformed_points, i)
+            self._draw_point(context, transformed_points, i, clipping)
 
         for line in self._lines_indexes:
-            self._draw_line(context, transformed_points, line)
+            self._draw_line(context, transformed_points, line, clipping)
 
         for face in self._faces_indexes:
-            self._draw_face(context, transformed_points, face)
+            self._draw_face(context, transformed_points, face, clipping)
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = super().get_descriptor()
@@ -228,12 +230,12 @@ class WireframeObject(GraphicObject):
 
         return descriptor
 
-    def _draw_point(self, context: cairo.Context, points: List[Point], index: int):
+    def _draw_point(self, context: cairo.Context, points: List[Point], index: int, clipping):
         point = points[index]
         super().draw_line(context, point, Point(point.x + 1, point.y + 1))
 
     def _draw_line(
-        self, context: cairo.Context, points: List[Point], line_indexes: List[int]
+            self, context: cairo.Context, points: List[Point], line_indexes: List[int], clipping
     ):
         last_index, *others = line_indexes
         for i in others:
@@ -243,7 +245,7 @@ class WireframeObject(GraphicObject):
             super().draw_line(context, point1, point2)
 
     def _draw_face(
-        self, context: cairo.Context, points: List[Point], face_indexes: List[int]
+            self, context: cairo.Context, points: List[Point], face_indexes: List[int], clipping
     ):
         context.set_source_rgb(*self._color)
 

@@ -1,13 +1,27 @@
+from globals import LineClippingType
 from system.basics import Point
 
 
 class Clipping:
 
+    line_type: LineClippingType
+
+    def __init__(self, line_type) -> None:
+        self.line_type = line_type
+
     @staticmethod
     def clip_point(max_p: Point, min_p: Point, point: Point):
         return (min_p.x <= point.x <= max_p.x) and (min_p.y <= point.y <= max_p.y)
 
-    # line clipping
+    def clip_line(self, max_p: Point, min_p: Point, point1: Point, point2: Point) -> tuple[Point, Point]:
+        if LineClippingType.LIANG_BARSKY == self.line_type:
+            return Clipping.liam_barsky(max_p, min_p, point1, point2)
+        else:
+            pontos = Clipping.cohen_sutherland(max_p, min_p, point1, point2)
+            print(pontos)
+            return pontos
+
+        # line clipping
     @staticmethod
     def liam_barsky(
         max_p: Point, min_p: Point, point1: Point, point2: Point
@@ -73,46 +87,71 @@ class Clipping:
         return Point(x, y)
 
     @staticmethod
+    def compute_cs_code(max_p: Point, min_p: Point, point1: Point):
+        # atribuição de códigos
+        region_code = 0b0000
+
+        if point1.x < min_p.x:
+            region_code |= 0b0001  # RC[4] <- 1
+        elif point1.x > max_p.x:
+            region_code |= 0b0010  # RC[3] <- 1
+        if point1.y < min_p.y:
+            region_code |= 0b0100  # RC[2] <- 1
+        elif point1.y > max_p.y:
+            region_code |= 0b1000  # RC[1] <- 1
+
+        return region_code
+
+    @staticmethod
     def cohen_sutherland(
         max_p: Point, min_p: Point, point1: Point, point2: Point
     ) -> tuple[Point, Point]:
 
-        # atribuição de códigos
-        region_code = [0b0000, 0b0000]
-
-        for i, p in enumerate([point1, point2]):
-            if p.x < min_p.x:
-                region_code[i] |= 0b0001  # RC[4] <- 1
-
-            if p.x > max_p.x:
-                region_code[i] |= 0b0010  # RC[3] <- 1
-
-            if p.y < min_p.y:
-                region_code[i] |= 0b0100  # RC[2] <- 1
-
-            if p.y > max_p.y:
-                region_code[i] |= 0b1000  # RC[1] <- 1
-
         # verificações
+        region_code1 = Clipping.compute_cs_code(max_p, min_p, point1)
+        region_code2 = Clipping.compute_cs_code(max_p, min_p, point2)
 
-        if (
-            region_code[0] | region_code[1]
-        ) == 0b0000:  # completamente contida na janela
-            return (point1, point2)
+        result = None
+        while True:
+            if (
+                region_code1 | region_code2
+            ) == 0b0000:  # completamente contida na janela
+                result = (point1, point2)
+                break
 
-        if (region_code[0] & region_code[1]) != 0b0000:  # completamente fora da janela
-            return None
+            elif (region_code1 & region_code2) != 0b0000:  # completamente fora da janela
+                result = None
+                break
 
-        if region_code[0] != 0b0000:
-            out1 = Clipping.cs_intersection(
-                max_p, min_p, point1, point2, region_code[0]
-            )
-        else:
-            out1 = point1
+            else:
+                region_out_code = region_code2 if region_code2 > region_code1 else region_code1
 
-        if region_code[1] != 0b0000:
-            out2 = Clipping.cs_intersection(max_p, min_p, out1, point2, region_code[1])
-        else:
-            out2 = point2
+                if region_out_code & 0b1000:  # point is above the clip window
+                    x = point1.x + (point2.x - point1.x) * (max_p.y - point1.y) / (
+                        point2.y - point1.y
+                    )
+                    y = max_p.y
+                elif region_out_code & 0b0100:  # point is below the clip window
+                    x = point1.x + (point2.x - point1.x) * (min_p.y - point1.y) / (
+                        point2.y - point1.y
+                    )
+                    y = min_p.y
+                elif region_out_code & 0b0010:  # point is to the right of clip window
+                    y = point1.y + (point2.y - point1.y) * (max_p.x - point1.x) / (
+                        point2.x - point1.x
+                    )
+                    x = max_p.x
+                elif region_out_code & 0b0001:  # point is to the left of clip window
+                    y = point1.y + (point2.y - point1.y) * (min_p.x - point1.x) / (
+                        point2.x - point1.x
+                    )
+                    x = min_p.x
 
-        return (out1, out2)
+                if region_out_code == region_code1:
+                    point1 = Point(x, y)
+                    region_code1 = Clipping.compute_cs_code(max_p, min_p, point1)
+                else:
+                    point2 = Point(x, y)
+                    region_code2 = Clipping.compute_cs_code(max_p, min_p, point2)
+
+        return result

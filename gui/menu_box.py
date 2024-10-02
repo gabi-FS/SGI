@@ -25,7 +25,6 @@ class MenuBox:
         self.object_list = ObjectList(self)
         self.object_form = ObjectForm(self)
         self.window_form = WindowForm(self)
-        self.element.set_hexpand(False)
 
         grid.attach(self.element, 0, 0, 1, 2)
 
