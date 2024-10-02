@@ -200,18 +200,15 @@ class WireframeObject(GraphicObject):
             window_max: Point,
             clipping: Clipping
     ):
-        print("drawing wireframe")
-        transformed_points = [
-            viewport_transform(point) for point in self._normalized_points
-        ]
+
         for i in self._point_indexes:
-            self._draw_point(context, transformed_points, i, clipping)
+            self._draw_point(context, i, viewport_transform, window_min, window_max, clipping)
 
         for line in self._lines_indexes:
-            self._draw_line(context, transformed_points, line, clipping)
+            self._draw_line(context, line, viewport_transform,  window_min, window_max, clipping)
 
         for face in self._faces_indexes:
-            self._draw_face(context, transformed_points, face, clipping)
+            self._draw_face(context, face,  viewport_transform, window_min, window_max, clipping)
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = super().get_descriptor()
@@ -230,36 +227,49 @@ class WireframeObject(GraphicObject):
 
         return descriptor
 
-    def _draw_point(self, context: cairo.Context, points: List[Point], index: int, clipping):
-        point = points[index]
-        super().draw_line(context, point, Point(point.x + 1, point.y + 1))
+    def _draw_point(self, context: cairo.Context, index: int, viewport_transform, window_min: Point,
+                    window_max: Point,
+                    clipping: Clipping):
+        point = self._normalized_points[0]
+        if clipping.clip_point(window_max, window_min, point):
+            new_point = viewport_transform(point)
+            super().draw_line(context, new_point, Point(new_point.x + 1, new_point.y + 1))
 
     def _draw_line(
-            self, context: cairo.Context, points: List[Point], line_indexes: List[int], clipping
+            self, context: cairo.Context, line_indexes: List[int],  viewport_transform, window_min: Point,
+            window_max: Point,
+            clipping: Clipping
     ):
         last_index, *others = line_indexes
         for i in others:
-            point1 = points[last_index]
-            point2 = points[i]
+            point1 = self.normalized_points[last_index]
+            point2 = self.normalized_points[i]
             last_index = i
-            super().draw_line(context, point1, point2)
+
+            new_line = clipping.clip_line(window_max, window_min, point1, point2)
+            if new_line:
+                initial_point = viewport_transform(new_line[0])
+                end_point = viewport_transform(new_line[1])
+                super().draw_line(context, initial_point, end_point)
 
     def _draw_face(
-            self, context: cairo.Context, points: List[Point], face_indexes: List[int], clipping
+            self, context: cairo.Context, face_indexes: List[int], viewport_transform, window_min: Point,
+            window_max: Point,
+            clipping: Clipping
     ):
         context.set_source_rgb(*self._color)
 
         last_index, *others = face_indexes
-        point1 = points[last_index]
-        context.move_to(point1.x, point1.y)
-        print(point1)
+        point1 = self.normalized_points[last_index]
+        v_point1 = viewport_transform(point1)
+        context.move_to(v_point1.x, v_point1.y)
 
         for i in others:
-            point2 = points[i]
-            print(point2)
-            context.line_to(point2.x, point2.y)
-        context.line_to(point1.x, point1.y)
-        print(point1)
+            point2 = self.normalized_points[i]
+            v_point2 = viewport_transform(point2)
+
+            context.line_to(v_point2.x, v_point2.y)
+        context.line_to(v_point1.x, v_point1.y)
 
         context.close_path()
         context.fill()
