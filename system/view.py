@@ -144,7 +144,7 @@ class ViewPort:
     _clipping_type: LineClippingType
 
     def __init__(
-            self, size: tuple[int, int] = None, window: Window = None, area: int = 0.005
+            self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
     ) -> None:
         if size and window:
             self._size = size

@@ -2,9 +2,8 @@ from typing import Any, Dict, List, Tuple
 
 from gi.repository import Gtk
 
-from globals import (DRAWING_AREA_SIZE, VIEWPORT_SIZE, WINDOW_HEIGHT,
-                     WINDOW_WIDTH, LineClippingType, ObjectType,
-                     TransformationType)
+from globals import (VIEWPORT_SIZE, WINDOW_HEIGHT, WINDOW_WIDTH,
+                     LineClippingType, ObjectType, TransformationType)
 from gui.main_window import MainWindow
 from system.files import ObjFileHandler
 from system.objects import GraphicObject, Point
@@ -24,7 +23,7 @@ class SGI:
     display_file: DisplayFile
 
     def __init__(self):
-        self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, DRAWING_AREA_SIZE)
+        self.main_window = MainWindow(WINDOW_WIDTH, WINDOW_HEIGHT, VIEWPORT_SIZE)
         window = Window(Point(0, 0), (VIEWPORT_SIZE, VIEWPORT_SIZE))
         viewport = ViewPort((VIEWPORT_SIZE, VIEWPORT_SIZE), window)
         transformation = Transformation()

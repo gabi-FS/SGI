@@ -2,8 +2,7 @@ from enum import Enum
 
 WINDOW_WIDTH = 1125  # 1/3 Menu, 2/3 DrawingArea
 WINDOW_HEIGHT = 750
-DRAWING_AREA_SIZE = 750
-VIEWPORT_SIZE = 730
+VIEWPORT_SIZE = 750
 
 
 class ObjectType(Enum):

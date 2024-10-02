@@ -61,32 +61,6 @@ class Clipping:
             return (Point(x0_clip, y0_clip), Point(x1_clip, y1_clip))
 
     @staticmethod
-    def cs_intersection(
-        max_p: Point, min_p: Point, point1: Point, point2: Point, point_code: "bin"
-    ):
-        if point_code & 0b1000:  # point is above the clip window
-            x = point1.x + (point2.x - point1.x) * (max_p.y - point1.y) / (
-                point2.y - point1.y
-            )
-            y = max_p.y
-        elif point_code & 0b0100:  # point is below the clip window
-            x = point1.x + (point2.x - point1.x) * (min_p.y - point1.y) / (
-                point2.y - point1.y
-            )
-            y = min_p.y
-        elif point_code & 0b0010:  # point is to the right of clip window
-            y = point1.y + (point2.y - point1.y) * (max_p.x - point1.x) / (
-                point2.x - point1.x
-            )
-            x = max_p.x
-        elif point_code & 0b0001:  # point is to the left of clip window
-            y = point1.y + (point2.y - point1.y) * (min_p.x - point1.x) / (
-                point2.x - point1.x
-            )
-            x = min_p.x
-        return Point(x, y)
-
-    @staticmethod
     def compute_cs_code(max_p: Point, min_p: Point, point1: Point):
         # atribuição de códigos
         region_code = 0b0000
