@@ -33,7 +33,6 @@ class Window(GraphicObject):
         self._points.append(Point(initial_coord.x, initial_coord.y + size[1]))
         self._points.append(Point(initial_coord.x + size[0], initial_coord.y + size[1]))
         self._points.append(Point(initial_coord.x + size[0], initial_coord.y))
-        print(self._points[0].x, self._points[0].y)
         # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmin, Ymax), (Xmax, Ymax), (Xmax, Ymin),]
         self._normalized_points = [
             Point(-1, -1),
@@ -60,6 +59,7 @@ class Window(GraphicObject):
             viewport_transform,
             window_min: Point = None,
             window_max: Point = None,
+            clipping=None
     ):
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)

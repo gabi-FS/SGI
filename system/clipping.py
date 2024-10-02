@@ -3,7 +3,6 @@ from system.basics import Point
 
 
 class Clipping:
-
     line_type: LineClippingType
 
     def __init__(self, line_type) -> None:
@@ -17,14 +16,13 @@ class Clipping:
         if LineClippingType.LIANG_BARSKY == self.line_type:
             return Clipping.liam_barsky(max_p, min_p, point1, point2)
         else:
-            pontos = Clipping.cohen_sutherland(max_p, min_p, point1, point2)
-            print(pontos)
-            return pontos
+            return Clipping.cohen_sutherland(max_p, min_p, point1, point2)
 
-        # line clipping
+    # line clipping
+
     @staticmethod
     def liam_barsky(
-        max_p: Point, min_p: Point, point1: Point, point2: Point
+            max_p: Point, min_p: Point, point1: Point, point2: Point
     ) -> tuple[Point, Point]:
         dx = point2.x - point1.x
         dy = point2.y - point1.y
@@ -78,7 +76,7 @@ class Clipping:
 
     @staticmethod
     def cohen_sutherland(
-        max_p: Point, min_p: Point, point1: Point, point2: Point
+            max_p: Point, min_p: Point, point1: Point, point2: Point
     ) -> tuple[Point, Point]:
 
         # verificações
@@ -88,7 +86,7 @@ class Clipping:
         result = None
         while True:
             if (
-                region_code1 | region_code2
+                    region_code1 | region_code2
             ) == 0b0000:  # completamente contida na janela
                 result = (point1, point2)
                 break
@@ -102,22 +100,22 @@ class Clipping:
 
                 if region_out_code & 0b1000:  # point is above the clip window
                     x = point1.x + (point2.x - point1.x) * (max_p.y - point1.y) / (
-                        point2.y - point1.y
+                            point2.y - point1.y
                     )
                     y = max_p.y
                 elif region_out_code & 0b0100:  # point is below the clip window
                     x = point1.x + (point2.x - point1.x) * (min_p.y - point1.y) / (
-                        point2.y - point1.y
+                            point2.y - point1.y
                     )
                     y = min_p.y
                 elif region_out_code & 0b0010:  # point is to the right of clip window
                     y = point1.y + (point2.y - point1.y) * (max_p.x - point1.x) / (
-                        point2.x - point1.x
+                            point2.x - point1.x
                     )
                     x = max_p.x
                 elif region_out_code & 0b0001:  # point is to the left of clip window
                     y = point1.y + (point2.y - point1.y) * (min_p.x - point1.x) / (
-                        point2.x - point1.x
+                            point2.x - point1.x
                     )
                     x = min_p.x
 
