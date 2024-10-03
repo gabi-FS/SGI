@@ -152,7 +152,6 @@ class Clipping:
                     intersection = Clipping.intersection(line, max_p, min_p, "second", edge)
                     clipped_lines_temp.append(intersection)
 
-            # Fazer o "patch de linhas"
             n_temp_lines = len(clipped_lines_temp)
             for i in range(n_temp_lines):
                 if i < len(clipped_lines_temp) - 1:
@@ -170,8 +169,6 @@ class Clipping:
 
     @staticmethod
     def is_inside(point: Point, max_p: Point, min_p: Point, edge: str):
-        # print(point)
-        # print(min_p)
         match edge:
             case "l":
                 return point.x > min_p.x

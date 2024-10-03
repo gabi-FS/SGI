@@ -258,18 +258,10 @@ class WireframeObject(GraphicObject):
             clipping: Clipping
     ):
         context.set_source_rgb(*self._color)
-
-        # Devo adquirir os pontos na ordem correta!
         normalized_face = [self.normalized_points[i] for i in face_indexes]
-
-        # Pegar linhas clipadas com um método de clipping e desenhar as linhas...
         new_lines = clipping.clip_polygon(normalized_face, window_max, window_min)
 
-        # print(new_lines)
-
-        print(new_lines[0][0])
         point1 = viewport_transform(new_lines[0][0])
-
         context.move_to(point1.x, point1.y)
 
         for line in new_lines:
