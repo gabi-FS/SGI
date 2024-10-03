@@ -55,7 +55,7 @@ class ObjectForm:
 
 class ObjectRadio:
     def __init__(self):
-        self.element = Gtk.FlowBox()
+        self.element = Gtk.Box(spacing=10)
         self.selected_type = ObjectType.POINT
         self.buttons = []
 
@@ -68,7 +68,7 @@ class ObjectRadio:
         self.add_button("Polígono (preenchido)", ObjectType.FILLED_POLYGON)
 
         for button in self.buttons:
-            self.element.add(button)
+            self.element.pack_start(button, False, False, 0)
 
     def add_button(self, name, object_type):
         button = Gtk.RadioButton.new_with_label_from_widget(self.buttons[0], name)
