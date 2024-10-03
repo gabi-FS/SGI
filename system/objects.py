@@ -205,10 +205,10 @@ class WireframeObject(GraphicObject):
             self._draw_point(context, i, viewport_transform, window_min, window_max, clipping)
 
         for line in self._lines_indexes:
-            self._draw_line(context, line, viewport_transform,  window_min, window_max, clipping)
+            self._draw_line(context, line, viewport_transform, window_min, window_max, clipping)
 
         for face in self._faces_indexes:
-            self._draw_face(context, face,  viewport_transform, window_min, window_max, clipping)
+            self._draw_face(context, face, viewport_transform, window_min, window_max, clipping)
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = super().get_descriptor()
@@ -236,7 +236,7 @@ class WireframeObject(GraphicObject):
             super().draw_line(context, new_point, Point(new_point.x + 1, new_point.y + 1))
 
     def _draw_line(
-            self, context: cairo.Context, line_indexes: List[int],  viewport_transform, window_min: Point,
+            self, context: cairo.Context, line_indexes: List[int], viewport_transform, window_min: Point,
             window_max: Point,
             clipping: Clipping
     ):
@@ -259,17 +259,22 @@ class WireframeObject(GraphicObject):
     ):
         context.set_source_rgb(*self._color)
 
-        last_index, *others = face_indexes
-        point1 = self.normalized_points[last_index]
-        v_point1 = viewport_transform(point1)
-        context.move_to(v_point1.x, v_point1.y)
+        # Devo adquirir os pontos na ordem correta!
+        normalized_face = [self.normalized_points[i] for i in face_indexes]
 
-        for i in others:
-            point2 = self.normalized_points[i]
-            v_point2 = viewport_transform(point2)
+        # Pegar linhas clipadas com um método de clipping e desenhar as linhas...
+        new_lines = clipping.clip_polygon(normalized_face, window_max, window_min)
 
-            context.line_to(v_point2.x, v_point2.y)
-        context.line_to(v_point1.x, v_point1.y)
+        # print(new_lines)
+
+        print(new_lines[0][0])
+        point1 = viewport_transform(new_lines[0][0])
+
+        context.move_to(point1.x, point1.y)
+
+        for line in new_lines:
+            point2 = viewport_transform(line[1])
+            context.line_to(point2.x, point2.y)
 
         context.close_path()
         context.fill()
