@@ -7,6 +7,7 @@ from globals import LineClippingType, ObjectType
 from system.basics import Point
 from system.clipping import Clipping
 from system.files import ObjectDescriptor
+import numpy as np
 
 
 class GraphicObject(ABC):
@@ -56,12 +57,12 @@ class GraphicObject(ABC):
 
     @abstractmethod
     def draw(
-            self,
-            context,
-            viewport_transform: "function",
-            window_min: Point,
-            window_max: Point,
-            clipping: Clipping
+        self,
+        context,
+        viewport_transform: "function",
+        window_min: Point,
+        window_max: Point,
+        clipping: Clipping,
     ):
         raise NotImplementedError
 
@@ -123,12 +124,12 @@ class PointObject(GraphicObject):
         self._type = ObjectType.POINT
 
     def draw(
-            self,
-            context: cairo.Context,
-            viewport_transform: "function",
-            window_min: Point,
-            window_max: Point,
-            clipping: Clipping
+        self,
+        context: cairo.Context,
+        viewport_transform: "function",
+        window_min: Point,
+        window_max: Point,
+        clipping: Clipping,
     ):
         if clipping.clip_point(window_max, window_min, self._normalized_points[0]):
             new_point = viewport_transform(self._normalized_points[0])
@@ -147,12 +148,12 @@ class LineSegmentObject(GraphicObject):
         self._type = ObjectType.LINE
 
     def draw(
-            self,
-            context: cairo.Context,
-            viewport_transform: "function",
-            window_min: Point,
-            window_max: Point,
-            clipping: Clipping
+        self,
+        context: cairo.Context,
+        viewport_transform: "function",
+        window_min: Point,
+        window_max: Point,
+        clipping: Clipping,
     ):
         new_line = clipping.clip_line(
             window_max,
@@ -177,14 +178,14 @@ class WireframeObject(GraphicObject):
     _faces_indexes: List[List[int]]
 
     def __init__(
-            self,
-            name: str,
-            points: list,
-            color,
-            wtype=ObjectType.POLYGON,
-            point_indexes=None,
-            lines_indexes=None,
-            faces_indexes=None,
+        self,
+        name: str,
+        points: list,
+        color,
+        wtype=ObjectType.POLYGON,
+        point_indexes=None,
+        lines_indexes=None,
+        faces_indexes=None,
     ) -> None:
         super().__init__(name, points, color)
         self._type = wtype
@@ -193,22 +194,28 @@ class WireframeObject(GraphicObject):
         self._faces_indexes = faces_indexes if faces_indexes is not None else []
 
     def draw(
-            self,
-            context: cairo.Context,
-            viewport_transform: Callable[[Point], Point],
-            window_min: Point,
-            window_max: Point,
-            clipping: Clipping
+        self,
+        context: cairo.Context,
+        viewport_transform: Callable[[Point], Point],
+        window_min: Point,
+        window_max: Point,
+        clipping: Clipping,
     ):
 
         for i in self._point_indexes:
-            self._draw_point(context, i, viewport_transform, window_min, window_max, clipping)
+            self._draw_point(
+                context, i, viewport_transform, window_min, window_max, clipping
+            )
 
         for line in self._lines_indexes:
-            self._draw_line(context, line, viewport_transform, window_min, window_max, clipping)
+            self._draw_line(
+                context, line, viewport_transform, window_min, window_max, clipping
+            )
 
         for face in self._faces_indexes:
-            self._draw_face(context, face, viewport_transform, window_min, window_max, clipping)
+            self._draw_face(
+                context, face, viewport_transform, window_min, window_max, clipping
+            )
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = super().get_descriptor()
@@ -227,18 +234,30 @@ class WireframeObject(GraphicObject):
 
         return descriptor
 
-    def _draw_point(self, context: cairo.Context, index: int, viewport_transform, window_min: Point,
-                    window_max: Point,
-                    clipping: Clipping):
+    def _draw_point(
+        self,
+        context: cairo.Context,
+        index: int,
+        viewport_transform,
+        window_min: Point,
+        window_max: Point,
+        clipping: Clipping,
+    ):
         point = self._normalized_points[0]
         if clipping.clip_point(window_max, window_min, point):
             new_point = viewport_transform(point)
-            super().draw_line(context, new_point, Point(new_point.x + 1, new_point.y + 1))
+            super().draw_line(
+                context, new_point, Point(new_point.x + 1, new_point.y + 1)
+            )
 
     def _draw_line(
-            self, context: cairo.Context, line_indexes: List[int], viewport_transform, window_min: Point,
-            window_max: Point,
-            clipping: Clipping
+        self,
+        context: cairo.Context,
+        line_indexes: List[int],
+        viewport_transform,
+        window_min: Point,
+        window_max: Point,
+        clipping: Clipping,
     ):
         last_index, *others = line_indexes
         for i in others:
@@ -253,9 +272,13 @@ class WireframeObject(GraphicObject):
                 super().draw_line(context, initial_point, end_point)
 
     def _draw_face(
-            self, context: cairo.Context, face_indexes: List[int], viewport_transform, window_min: Point,
-            window_max: Point,
-            clipping: Clipping
+        self,
+        context: cairo.Context,
+        face_indexes: List[int],
+        viewport_transform,
+        window_min: Point,
+        window_max: Point,
+        clipping: Clipping,
     ):
         context.set_source_rgb(*self._color)
         normalized_face = [self.normalized_points[i] for i in face_indexes]
@@ -270,3 +293,48 @@ class WireframeObject(GraphicObject):
 
         context.close_path()
         context.fill()
+
+
+class BezierCurve(GraphicObject):
+    _drawing_step: int
+
+    def __init__(self, name: str, points: List, color, drawing_step=10) -> None:
+        self._drawing_step = drawing_step
+        n_control_points = len(points)
+        real_points = []
+        for i in range(n_control_points, step=3):
+            # Cria curvas a cada 3 pontos para garantir continuidade G(0):
+            # o primeiro ponto da segunda curva coincide com o último da primeira e assim por diante
+            p = self.compute_curve_points(points[i : i + 3])
+            real_points.append(p)
+        super().__init__(name, real_points, color)
+
+    def compute_curve_points(self, control_points):
+        m = np.array([[1, 0, 0, 0], [-3, 3, 0, 0], [3, -6, 3, 0], [-1, 3, -3, 1]])
+        computed_points = []
+
+        for val in range(1, self._drawing_step + 1):
+            t = 1 / val
+
+            t_matrix = np.array([1, t, t * t, t * t * t])
+            t_m_matrix = t_matrix @ m
+
+            x_value = t_m_matrix @ np.array(
+                [
+                    [control_points[0].x],
+                    [control_points[1].x],
+                    [control_points[2].x],
+                    [control_points[3].x],
+                ]
+            )
+            y_value = t_m_matrix @ np.array(
+                [
+                    [control_points[0].y],
+                    [control_points[1].y],
+                    [control_points[2].y],
+                    [control_points[3].y],
+                ]
+            )
+            computed_points.append(Point(x_value, y_value))
+
+        return computed_points
