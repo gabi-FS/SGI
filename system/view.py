@@ -8,7 +8,7 @@ from system.basics import Point
 from system.clipping import Clipping
 from system.files import ObjectDescriptor
 from system.objects import (GraphicObject, LineSegmentObject, PointObject,
-                            WireframeObject)
+                            WireframeObject, BezierCurve)
 from system.transform import Transformation
 
 
@@ -201,6 +201,8 @@ class DisplayFile:
                 obj = WireframeObject(
                     name, new_input, color, ObjectType.FILLED_POLYGON, faces_indexes=[list(range(n_points))]
                 )
+            case ObjectType.BEZIER_CURVE:
+                obj = BezierCurve(name, new_input, color)
         self.add_object(obj)
         self.normalize_object(obj)
         return obj.id

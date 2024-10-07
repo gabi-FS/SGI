@@ -66,6 +66,7 @@ class ObjectRadio:
         self.add_button("Reta", ObjectType.LINE)
         self.add_button("Polígono (arame)", ObjectType.WIREFRAME_POLYGON)
         self.add_button("Polígono (preenchido)", ObjectType.FILLED_POLYGON)
+        self.add_button("Curva", ObjectType.BEZIER_CURVE)
 
         for button in self.buttons:
             self.element.pack_start(button, False, False, 0)

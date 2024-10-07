@@ -11,6 +11,7 @@ class ObjectType(Enum):
     WIREFRAME_POLYGON = 3
     FILLED_POLYGON = 4
     POLYGON = 5
+    BEZIER_CURVE = 6
 
 
 class TransformationType(Enum):
