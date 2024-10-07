@@ -351,13 +351,11 @@ class BezierCurve(GraphicObject):
             window_max: Point,
             clipping: Clipping,
     ):
-        context.set_source_rgb(*self._color)
-
-        transformed_point = viewport_transform(self.normalized_points[0])
-        context.move_to(transformed_point.x, transformed_point.y)
-
-        for point in self.normalized_points[1:]:
-            transformed_point = viewport_transform(point)
-            context.line_to(transformed_point.x, transformed_point.y)
-
-        context.stroke()
+        last_point, *others = self.normalized_points
+        for next_point in others:
+            new_line = clipping.clip_line(window_max, window_min, last_point, next_point)
+            if new_line:
+                initial_point = viewport_transform(new_line[0])
+                end_point = viewport_transform(new_line[1])
+                super().draw_line(context, initial_point, end_point)
+            last_point = next_point
