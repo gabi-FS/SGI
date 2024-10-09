@@ -20,19 +20,19 @@ class DrawingArea:
         self._element.connect("draw", self._on_draw)
         self._element.connect("scroll-event", self._on_scroll)
 
-        grid.attach(self._element, 1, 0, 2, 2)
+        grid.attach(self._element, 1, 0, 1, 2)
 
     def connect_on_draw(self, on_draw):
-        """ Determina uma função que será executada no fluxo da on_draw"""
+        """Determina uma função que será executada no fluxo da on_draw"""
         self._external_on_draw = on_draw
 
     def connect_scroll_up_down(self, scroll_up, scroll_down):
-        """ Determina as funções para os eventos de scroll """
+        """Determina as funções para os eventos de scroll"""
         self._scroll_up = scroll_up
         self._scroll_down = scroll_down
 
     def queue_draw(self):
-        """ Força o redesenho da tela """
+        """Força o redesenho da tela"""
         self._element.queue_draw()
 
     def _on_draw(self, _, context: cairo.Context):
