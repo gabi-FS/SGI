@@ -284,15 +284,16 @@ class WireframeObject(GraphicObject):
         normalized_face = [self.normalized_points[i] for i in face_indexes]
         new_lines = clipping.clip_polygon(normalized_face, window_max, window_min)
 
-        point1 = viewport_transform(new_lines[0][0])
-        context.move_to(point1.x, point1.y)
+        if new_lines:
+            point1 = viewport_transform(new_lines[0][0])
+            context.move_to(point1.x, point1.y)
 
-        for line in new_lines:
-            point2 = viewport_transform(line[1])
-            context.line_to(point2.x, point2.y)
+            for line in new_lines:
+                point2 = viewport_transform(line[1])
+                context.line_to(point2.x, point2.y)
 
-        context.close_path()
-        context.fill()
+            context.close_path()
+            context.fill()
 
 
 class BezierCurve(GraphicObject):

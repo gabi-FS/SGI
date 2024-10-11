@@ -38,7 +38,6 @@ class SGI:
     def connect(self):
         """Faz as conexões entre elementos e ações da tela e funções de suas classes específicas"""
         drawing_area = self.main_window.drawing_area
-        object_form = self.main_window.menu_box.object_form
         window_form = self.main_window.menu_box.window_form
         object_list = self.main_window.menu_box.object_list
 
@@ -49,7 +48,7 @@ class SGI:
         drawing_area.connect_scroll_up_down(self.zoom_in, self.zoom_out)
 
         object_list.set_on_apply_transform(self.transform_object)
-        object_form.set_on_submit(self.add_object)
+        self.main_window.menu_box.set_on_create_object(self.add_object)
         window_form.connect_zoom_buttons(self.zoom_in, self.zoom_out)
         window_form.connect_panning_buttons(
             self.go_up, self.go_left, self.go_right, self.go_down
@@ -57,7 +56,7 @@ class SGI:
         window_form.connect_rotate_window(self.rotate)
         window_form.connect_change_clipping(self.change_clipping_type)
 
-    def add_object(self, object_type: ObjectType, name: str, input_str: str):
+    def add_object(self, object_type: ObjectType, name: str, input_str: str, color: tuple[float]) -> int:
         """Função executada ao clicar em 'Adicionar objeto'"""
         try:
             parsed_input: List[Tuple[float, float]] = parse_input(input_str)
@@ -68,16 +67,19 @@ class SGI:
                 object_type,
                 name,
                 parsed_input,
-                self.main_window.menu_box.object_form.get_color(),
+                color
             )
             self.main_window.menu_box.object_list.add_item(
                 f"{object_type.name}[{name}]", object_id
             )
             self.main_window.drawing_area.queue_draw()
+            return 1
         except (ValueError, SyntaxError, AttributeError) as e:
             print(f"Erro ao processar a string: {e}")
+            return -1
         except ValidationError as e:
             print(f"Erro ao validar entradas: {e}")
+            return -1
 
     def transform_object(
             self, object_id: int, object_input: Dict[TransformationType, Any]

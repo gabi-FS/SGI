@@ -20,7 +20,7 @@ class DrawingArea:
         self._element.connect("draw", self._on_draw)
         self._element.connect("scroll-event", self._on_scroll)
 
-        grid.attach(self._element, 1, 0, 1, 2)
+        grid.attach(self._element, 1, 0, 2, 2)
 
     def connect_on_draw(self, on_draw):
         """Determina uma função que será executada no fluxo da on_draw"""
