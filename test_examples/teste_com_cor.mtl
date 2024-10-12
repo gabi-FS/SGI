@@ -2,3 +2,11 @@ newmtl Polygon_material1
 Kd 1.0 0.0 0.0
 newmtl seta_material2
 Kd 0.8980392156862745 0.6470588235294118 0.0392156862745098
+newmtl ponto_material3
+Kd 1.0 0.0 0.0
+newmtl linha_material4
+Kd 1.0 0.0 0.0
+newmtl curvitta_material5
+Kd 0.3803921568627451 0.20784313725490197 0.5137254901960784
+newmtl losangu_material6
+Kd 1.0 0.6392156862745098 0.2823529411764706

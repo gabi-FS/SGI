@@ -3,7 +3,7 @@ from typing import Callable, List
 
 import cairo
 
-from globals import LineClippingType, ObjectType
+from globals import ObjectType
 from system.basics import Point
 from system.clipping import Clipping
 from system.files import ObjectDescriptor
@@ -360,3 +360,9 @@ class BezierCurve(GraphicObject):
                 end_point = viewport_transform(new_line[1])
                 super().draw_line(context, initial_point, end_point)
             last_point = next_point
+
+    def get_descriptor(self) -> ObjectDescriptor:
+        descriptor = super().get_descriptor()
+        len_vertices = len(self._points)
+        descriptor.lines = [[i - len_vertices for i in range(len_vertices)]]
+        return descriptor
