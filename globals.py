@@ -12,6 +12,7 @@ class ObjectType(Enum):
     FILLED_POLYGON = 4
     POLYGON = 5
     BEZIER_CURVE = 6
+    BSPLINE_CURVE = 7
 
 
 class TransformationType(Enum):

@@ -366,3 +366,106 @@ class BezierCurve(GraphicObject):
         len_vertices = len(self._points)
         descriptor.lines = [[i - len_vertices for i in range(len_vertices)]]
         return descriptor
+
+
+# TODO: Classe abstrata de Curva?
+
+class BSplineCurve(GraphicObject):
+    _drawing_step: int
+
+    def __init__(self, name: str, points: List[Point], color, drawing_step=30) -> None:
+        self._drawing_step = drawing_step
+        n_control_points = len(points)
+
+        if n_control_points < 4:
+            raise ValueError("É necessário um mínimo de 4 pontos de controle para gerar uma curva B-Spline.")
+
+        # Calcula segmentos da B-Spline utilizando blocos de 4 pontos consecutivos
+        real_points = []
+        for i in range(n_control_points - 3):
+            p = self.compute_curve_points(points[i: i + 4])
+            real_points.extend(p)  # Concatena os pontos calculados
+
+        super().__init__(name, real_points, color)
+
+    def compute_curve_points(self, control_points: List[Point]):
+        computed_points = []
+
+        # Matriz da B-Spline cúbica usando np.array
+        b_spline_matrix = (1 / 6) * np.array([[-1, 3, -3, 1],
+                                              [3, -6, 3, 0],
+                                              [-3, 0, 3, 0],
+                                              [1, 4, 1, 0]])
+
+        delta = 1 / self._drawing_step
+
+        # Matriz de diferenças forward usando np.array
+        diff_matrix = np.array([[0, 0, 0, 1],
+                                [delta ** 3, delta ** 2, delta, 0],
+                                [6 * delta ** 3, 2 * delta ** 2, 0, 0],
+                                [6 * delta ** 3, 0, 0, 0]])
+
+        p1, p2, p3, p4 = control_points
+
+        geometry_matrix_x = np.array([[p1.x], [p2.x], [p3.x], [p4.x]])
+        geometry_matrix_y = np.array([[p1.y], [p2.y], [p3.y], [p4.y]])
+
+        # Multiplica a matriz de controle pelos coeficientes da B-Spline
+        coeff_matrix_x = b_spline_matrix @ geometry_matrix_x
+        coeff_matrix_y = b_spline_matrix @ geometry_matrix_y
+
+        # Aplica Forward Differences para as coordenadas x e y
+        initial_conditions_matrix_x = diff_matrix @ coeff_matrix_x
+        initial_conditions_matrix_y = diff_matrix @ coeff_matrix_y
+
+        new_x = initial_conditions_matrix_x[0, 0]
+        new_y = initial_conditions_matrix_y[0, 0]
+
+        delta_x = initial_conditions_matrix_x[1, 0]
+        delta2_x = initial_conditions_matrix_x[2, 0]
+        delta3_x = initial_conditions_matrix_x[3, 0]
+
+        delta_y = initial_conditions_matrix_y[1, 0]
+        delta2_y = initial_conditions_matrix_y[2, 0]
+        delta3_y = initial_conditions_matrix_y[3, 0]
+
+        # Adiciona o primeiro ponto calculado
+        computed_points.append(Point(new_x, new_y))
+
+        # Calcula os próximos pontos incrementando as diferenças
+        for _ in range(self._drawing_step):
+            new_x += delta_x
+            new_y += delta_y
+
+            delta_x += delta2_x
+            delta_y += delta2_y
+
+            delta2_x += delta3_x
+            delta2_y += delta3_y
+
+            computed_points.append(Point(new_x, new_y))
+
+        return computed_points
+
+    def draw(
+            self,
+            context: cairo.Context,
+            viewport_transform: Callable[[Point], Point],
+            window_min: Point,
+            window_max: Point,
+            clipping: Clipping,
+    ):
+        last_point, *others = self.normalized_points
+        for next_point in others:
+            new_line = clipping.clip_line(window_max, window_min, last_point, next_point)
+            if new_line:
+                initial_point = viewport_transform(new_line[0])
+                end_point = viewport_transform(new_line[1])
+                super().draw_line(context, initial_point, end_point)
+            last_point = next_point
+
+    def get_descriptor(self) -> ObjectDescriptor:
+        descriptor = super().get_descriptor()
+        len_vertices = len(self._points)
+        descriptor.lines = [[i - len_vertices for i in range(len_vertices)]]
+        return descriptor
