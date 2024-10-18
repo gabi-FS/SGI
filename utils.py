@@ -6,30 +6,43 @@ from typing import Dict, List, Tuple
 TUPLE_PATTERN = r"\(([^)]+)\)"
 
 
-def parse_input(input_str: str) -> List[Tuple[float, float]]:
+def parse_input(
+    input_str: str,
+) -> List[Tuple[float, float]] | List[Tuple[float, float, float]]:
     matches = re.findall(TUPLE_PATTERN, input_str)
     result = []
     for match in matches:
-        numbers = match.split(',')
-        if len(numbers) != 2:  # TODO: Separar parsing e validação
-            raise ValueError(f"Tupla inválida (deve conter exatamente dois elementos): {match}")
+        numbers = match.split(",")
+        # a tupla pode conter 2 ou 3 elementos
+        if len(numbers) not in (2, 3):  # TODO: Separar parsing e validação
+            raise ValueError(f"Tupla inválida (deve conter 2 ou 3 elementos): {match}")
         try:
-            num1 = float(numbers[0].strip())
-            num2 = float(numbers[1].strip())
-            result.append((num1, num2))
+            numbers_tuple = []  # inicializar a tupla de números como uma lista
+            for num in numbers:
+                numbers_tuple.append(float(num.strip()))
+
+            # transformar a lista em uma tupla propriamente dita
+            numbers_tuple = tuple(numbers_tuple)
+
+            result.append(numbers_tuple)
+            print(result)
         except ValueError:
-            raise ValueError(f"Os valores fornecidos na tupla não são números válidos: {match}")
+            raise ValueError(
+                f"Os valores fornecidos na tupla não são números válidos: {match}"
+            )
     return result
 
 
 def get_tuple_from_str(string: str) -> Tuple[float, float]:
-    """ a single tuple with two numbers from a string in (number, number) format"""
+    """a single tuple with two numbers from a string in (number, number) format"""
     matches = re.findall(TUPLE_PATTERN, string)
     number1, number2 = matches[0].split(",")
     return float(number1.strip()), float(number2.strip())
 
 
-def get_tuple_from_object(data_input: Dict[str, str], default_value: int = 0) -> Tuple[float, float]:
+def get_tuple_from_object(
+    data_input: Dict[str, str], default_value: int = 0
+) -> Tuple[float, float]:
     """_summary_
     Args:
         data_input (Dict[str, str]): objeto que possui chaves "x" e "y"

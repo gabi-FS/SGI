@@ -4,10 +4,12 @@ import numpy as np
 class Point:
     _x: float
     _y: float
+    _z: float
 
-    def __init__(self, x: float, y: float) -> None:
+    def __init__(self, x: float, y: float, z: float = 0.0) -> None:
         self._x = x
         self._y = y
+        self._z = z
 
     @property
     def x(self):
@@ -17,17 +19,21 @@ class Point:
     def y(self):
         return self._y
 
+    @property
+    def z(self):
+        return self._z
+
     def __add__(self, other):
-        return Point(self.x + other.x, self.y + other.y)
+        return Point(self.x + other.x, self.y + other.y, self.z + other.z)
 
     def __sub__(self, other):
-        return Point(self.x - other.x, self.y - other.y)
+        return Point(self.x - other.x, self.y - other.y, self.z - other.z)
 
     def __iter__(self):
         return iter([self._x, self._y])
 
     def __str__(self) -> str:
-        return f"Point: x={self._x}, y={self._y}"
+        return f"Point: x={self._x}, y={self._y}, z={self._z}"
 
     def get_homogeneous_matrix(self) -> np.array:
         return np.array([[self._x], [self._y], [1.0]])
@@ -59,13 +65,16 @@ class Point:
     def get_geometric_center(cls, points: list["Point"]) -> "Point":
         x_list = []
         y_list = []
+        z_list = []
         for p in points:
             x_list.append(p.x)
             y_list.append(p.y)
+            z_list.append(p.z)
 
         center_x = np.mean(x_list)
         center_y = np.mean(y_list)
+        center_z = np.mean(z_list)
 
-        center = Point(center_x, center_y)
+        center = Point(center_x, center_y, center_z)
 
         return center

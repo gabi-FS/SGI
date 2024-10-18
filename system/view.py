@@ -7,8 +7,14 @@ from globals import LineClippingType, ObjectType, TransformationType
 from system.basics import Point
 from system.clipping import Clipping
 from system.files import ObjectDescriptor
-from system.objects import (GraphicObject, LineSegmentObject, PointObject,
-                            WireframeObject, BezierCurve, BSplineCurve)
+from system.objects import (
+    GraphicObject,
+    LineSegmentObject,
+    PointObject,
+    WireframeObject,
+    BezierCurve,
+    BSplineCurve,
+)
 from system.transform import Transformation
 
 
@@ -54,12 +60,12 @@ class Window(GraphicObject):
         return self._scale_y
 
     def draw(
-            self,
-            context: cairo.Context,
-            viewport_transform,
-            window_min: Point = None,
-            window_max: Point = None,
-            clipping=None
+        self,
+        context: cairo.Context,
+        viewport_transform,
+        window_min: Point = None,
+        window_max: Point = None,
+        clipping=None,
     ):
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)
@@ -144,7 +150,7 @@ class ViewPort:
     _clipping_type: LineClippingType
 
     def __init__(
-            self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
+        self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
     ) -> None:
         if size and window:
             self._size = size
@@ -187,6 +193,7 @@ class DisplayFile:
 
     def create_object(self, object_type, name, input_data, color) -> int:
         new_input = [Point(*x) for x in input_data]
+        print(*new_input)
         n_points = len(new_input)
         match object_type:
             case ObjectType.POINT:
@@ -195,11 +202,19 @@ class DisplayFile:
                 obj = LineSegmentObject(name, new_input, color)
             case ObjectType.WIREFRAME_POLYGON:
                 obj = WireframeObject(
-                    name, new_input, color, ObjectType.WIREFRAME_POLYGON, lines_indexes=[list(range(n_points)) + [0]]
+                    name,
+                    new_input,
+                    color,
+                    ObjectType.WIREFRAME_POLYGON,
+                    lines_indexes=[list(range(n_points)) + [0]],
                 )
             case ObjectType.FILLED_POLYGON:
                 obj = WireframeObject(
-                    name, new_input, color, ObjectType.FILLED_POLYGON, faces_indexes=[list(range(n_points))]
+                    name,
+                    new_input,
+                    color,
+                    ObjectType.FILLED_POLYGON,
+                    faces_indexes=[list(range(n_points))],
                 )
             case ObjectType.BEZIER_CURVE:
                 obj = BezierCurve(name, new_input, color)
@@ -220,7 +235,7 @@ class DisplayFile:
         obj.update_normalized_points(new_points)
 
     def transform_object(
-            self, object_id: int, object_input: Dict[TransformationType, Any]
+        self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -240,7 +255,7 @@ class DisplayFile:
                 self._view_port.transform,
                 self._view_port.window.normalized_points[0],
                 self._view_port.window.normalized_points[2],
-                self._clipping
+                self._clipping,
             )
 
     def get_object(self, object_id: int) -> GraphicObject:

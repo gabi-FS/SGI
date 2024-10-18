@@ -2,8 +2,14 @@ from typing import Any, Dict, List, Tuple
 
 from gi.repository import Gtk
 
-from globals import (VIEWPORT_SIZE, WINDOW_HEIGHT, WINDOW_WIDTH,
-                     LineClippingType, ObjectType, TransformationType)
+from globals import (
+    VIEWPORT_SIZE,
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH,
+    LineClippingType,
+    ObjectType,
+    TransformationType,
+)
 from gui.main_window import MainWindow
 from system.files import ObjFileHandler
 from system.objects import GraphicObject, Point
@@ -56,18 +62,19 @@ class SGI:
         window_form.connect_rotate_window(self.rotate)
         window_form.connect_change_clipping(self.change_clipping_type)
 
-    def add_object(self, object_type: ObjectType, name: str, input_str: str, color: tuple[float]) -> int:
+    def add_object(
+        self, object_type: ObjectType, name: str, input_str: str, color: tuple[float]
+    ) -> int:
         """Função executada ao clicar em 'Adicionar objeto'"""
         try:
-            parsed_input: List[Tuple[float, float]] = parse_input(input_str)
+            parsed_input: (
+                List[Tuple[float, float]] | List[Tuple[float, float, float]]
+            ) = parse_input(input_str)
             Validation.object_coordinates_input(parsed_input, object_type)
 
             name = name if name else object_type.name.title()
             object_id = self.display_file.create_object(
-                object_type,
-                name,
-                parsed_input,
-                color
+                object_type, name, parsed_input, color
             )
             self.main_window.menu_box.object_list.add_item(
                 f"{object_type.name}[{name}]", object_id
@@ -82,7 +89,7 @@ class SGI:
             return -1
 
     def transform_object(
-            self, object_id: int, object_input: Dict[TransformationType, Any]
+        self, object_id: int, object_input: Dict[TransformationType, Any]
     ) -> int:
         """
         object_input:

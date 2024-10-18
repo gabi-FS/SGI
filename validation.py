@@ -17,7 +17,8 @@ class Validation:
 
     @staticmethod
     def object_coordinates_input(
-        input_list: List[Tuple[float, float]], object_type: ObjectType
+        input_list: List[Tuple[float, float]] | List[Tuple[float, float, float]],
+        object_type: ObjectType,
     ):
         if len(input_list) == 0:
             raise ValidationError("Nenhuma tupla foi encontrada.")
