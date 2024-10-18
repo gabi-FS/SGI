@@ -30,16 +30,16 @@ class Point:
         return Point(self.x - other.x, self.y - other.y, self.z - other.z)
 
     def __iter__(self):
-        return iter([self._x, self._y])
+        return iter([self._x, self._y, self._z])
 
     def __str__(self) -> str:
         return f"Point: x={self._x}, y={self._y}, z={self._z}"
 
     def get_homogeneous_matrix(self) -> np.array:
-        return np.array([[self._x], [self._y], [1.0]])
+        return np.array([[self._x], [self._y], [self._z], [1.0]])
 
     def get_array(self) -> np.array:
-        return np.array([self._x, self._y])
+        return np.array([self._x, self._y, self._z])
 
     def norm(self) -> float:
         array = self.get_array()
@@ -50,7 +50,10 @@ class Point:
         """
         Produto interno de 2 vetores
         """
-        return (vector1.x * vector2.x) + (vector1.y * vector2.y)
+        # (vector1.x * vector2.x) + (vector1.y * vector2.y)
+        array1 = vector1.get_array()
+        array2 = vector2.get_array()
+        return np.inner(array1, array2)
 
     @classmethod
     def angle_between_vectors(cls, vector1: "Point", vector2: "Point"):
