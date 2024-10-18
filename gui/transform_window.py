@@ -12,10 +12,10 @@ class TransformWindow(Gtk.Window):
     _external_on_apply: Callable[[int, Dict[TransformationType, Any]], int]
 
     def __init__(
-            self,
-            widget: Gtk.Widget,
-            selected_object_id: int,
-            external_on_apply: Callable[[int, Dict[TransformationType, Any]], int],
+        self,
+        widget: Gtk.Widget,
+        selected_object_id: int,
+        external_on_apply: Callable[[int, Dict[TransformationType, Any]], int],
     ):
         super().__init__(title="Transformação do objeto")
         self.selected_object_id = selected_object_id
@@ -106,10 +106,15 @@ class TranslationPage:
         self.entry_y = Gtk.Entry()
         self.entry_y.set_placeholder_text("0")
 
+        self.entry_z = Gtk.Entry()
+        self.entry_z.set_placeholder_text("0")
+
         input_box.pack_start(Gtk.Label(label="X:"), False, False, 0)
         input_box.pack_start(self.entry_x, True, True, 0)
         input_box.pack_start(Gtk.Label(label="Y:"), False, False, 0)
         input_box.pack_start(self.entry_y, True, True, 0)
+        input_box.pack_start(Gtk.Label(label="Z:"), False, False, 0)
+        input_box.pack_start(self.entry_z, True, True, 0)
 
         for button in self.buttons:
             self.element.pack_start(button, False, False, 0)
@@ -132,6 +137,7 @@ class TranslationPage:
         return {
             "x": self.entry_x.get_text(),
             "y": self.entry_y.get_text(),
+            "z": self.entry_z.get_text(),
             "type": self.selected_radio,
         }
 
@@ -220,12 +226,23 @@ class ScalingPage:
 
         self.entry_y = Gtk.Entry()
         self.entry_y.set_placeholder_text("1")
+
+        self.entry_z = Gtk.Entry()
+        self.entry_z.set_placeholder_text("1")
+
         input_box.pack_start(Gtk.Label(label="X:"), False, False, 0)
         input_box.pack_start(self.entry_x, True, True, 0)
         input_box.pack_start(Gtk.Label(label="Y:"), False, False, 0)
         input_box.pack_start(self.entry_y, True, True, 0)
+        input_box.pack_start(Gtk.Label(label="Z:"), False, False, 0)
+        input_box.pack_start(self.entry_z, True, True, 0)
+
         self.element.pack_start(input_box, False, False, 0)
         self.element.pack_start(instructions, False, False, 0)
 
     def get_input_object(self):
-        return {"x": self.entry_x.get_text(), "y": self.entry_y.get_text()}
+        return {
+            "x": self.entry_x.get_text(),
+            "y": self.entry_y.get_text(),
+            "z": self.entry_z.get_text(),
+        }
