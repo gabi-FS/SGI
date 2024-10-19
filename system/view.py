@@ -267,7 +267,11 @@ class DisplayFile:
     def update_normalization(self):
         window = self._view_port.window
         self._transformation.set_normalizing_matrix(
-            window.center, window.get_up_vector(), window.scale_x, window.scale_y
+            window.center,
+            window.get_up_vector(),
+            window.scale_x,
+            window.scale_y,
+            0,
         )
         for obj in self._objects.values():
             self.normalize_object(obj)

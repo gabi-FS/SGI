@@ -43,7 +43,7 @@ def get_tuple_from_str(string: str) -> Tuple[float, float]:
 def get_tuple_from_object(
     data_input: Dict[str, str], default_value: int = 0
 ) -> Tuple[float, float, float]:
-    """_summary_
+    """
     Args:
         data_input (Dict[str, str]): objeto que possui chaves "x", "y" e "z"
         default_value (int, optional): substitui o valor de um dos números caso ele não exista.
