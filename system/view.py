@@ -32,14 +32,14 @@ class Window(GraphicObject):
     _scale_y: float
 
     def __init__(self, initial_coord: Point, size: tuple[int, int]) -> None:
-        self._name = "Window"
-        self._color = (1, 0.886, 0)
-        self._type = ObjectType.WIREFRAME_POLYGON
-        self._points = [initial_coord]
-        self._points.append(Point(initial_coord.x, initial_coord.y + size[1]))
-        self._points.append(Point(initial_coord.x + size[0], initial_coord.y + size[1]))
-        self._points.append(Point(initial_coord.x + size[0], initial_coord.y))
+        color = (1, 0.886, 0)
+        points = [initial_coord]
+        points.append(Point(initial_coord.x, initial_coord.y + size[1]))
+        points.append(Point(initial_coord.x + size[0], initial_coord.y + size[1]))
+        points.append(Point(initial_coord.x + size[0], initial_coord.y))
         # coordenadas da window vão ser sempre [(Xmin, Ymin), (Xmin, Ymax), (Xmax, Ymax), (Xmax, Ymin),]
+        super().__init__("Window", points, color)
+        self._type = ObjectType.WIREFRAME_POLYGON
         self._normalized_points = [
             Point(-1, -1),
             Point(-1, 1),
@@ -49,7 +49,6 @@ class Window(GraphicObject):
         self._normalized_center = Point(0, 0)
         self._scale_x = 2 / size[0]
         self._scale_y = 2 / size[1]
-        self.compute_center()
 
     @property
     def scale_x(self):
