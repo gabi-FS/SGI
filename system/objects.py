@@ -21,6 +21,7 @@ class GraphicObject(ABC):
     _color: tuple
     _normalized_points: list[Point]
     _normalized_center: Point
+    _rotation_matrix: np.array
 
     def __init__(self, name: str, points: list, color) -> None:
         self._id = GraphicObject._id_increment
@@ -30,6 +31,7 @@ class GraphicObject(ABC):
         self._color = color
         self._normalized_points = points
         self._normalized_center = self.compute_center()
+        self._rotation_matrix = np.identity(4)
 
     @property
     def id(self):

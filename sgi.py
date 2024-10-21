@@ -151,9 +151,14 @@ class SGI:
         self.display_file.on_down()
         self.main_window.drawing_area.queue_draw()
 
-    def rotate(self, angle: str):
+    def rotate(
+        self,
+        angle_x: str,
+        angle_y: str,
+        angle_z: str,
+    ):
         try:
-            self.display_file.on_rotate(float(angle))
+            self.display_file.on_rotate(float(angle_x), float(angle_y), float(angle_z))
             self.main_window.drawing_area.queue_draw()
         except ValueError:
             print("Não foi possível converter entrada para numérico.")

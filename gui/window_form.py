@@ -34,11 +34,11 @@ class WindowForm:
         menu_box.add_element(Gtk.Separator())
 
     def connect_panning_buttons(
-            self,
-            on_up: Callable[[], None],
-            on_left: Callable[[], None],
-            on_right: Callable[[], None],
-            on_down: Callable[[], None],
+        self,
+        on_up: Callable[[], None],
+        on_left: Callable[[], None],
+        on_right: Callable[[], None],
+        on_down: Callable[[], None],
     ):
         self._panning_box.external_on_button_up = on_up
         self._panning_box.external_on_button_left = on_left
@@ -46,7 +46,7 @@ class WindowForm:
         self._panning_box.external_on_button_down = on_down
 
     def connect_zoom_buttons(
-            self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
+        self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
     ):
         self._zoom_box.external_zoom_in = zoom_in
         self._zoom_box.external_zoom_out = zoom_out
@@ -153,18 +153,32 @@ class RotationInput:
     def __init__(self):
         self.element = Gtk.Box(spacing=10)
 
-        self.angle_entry = Gtk.Entry()
-        self.angle_entry.set_placeholder_text("Ângulo (em graus)")
+        self.x_angle_entry = Gtk.Entry()
+        self.x_angle_entry.set_placeholder_text("Ângulo (em graus)")
+
+        self.y_angle_entry = Gtk.Entry()
+        self.y_angle_entry.set_placeholder_text("Ângulo (em graus)")
+
+        self.z_angle_entry = Gtk.Entry()
+        self.z_angle_entry.set_placeholder_text("Ângulo (em graus)")
+
         self.rotate_button = Gtk.Button(label="Rotacionar")
         self.rotate_button.connect("clicked", self.on_rotate_button_clicked)
 
-        self.element.pack_start(self.angle_entry, True, True, 0)
+        self.element.pack_start(self.x_angle_entry, True, True, 0)
+        self.element.pack_start(self.y_angle_entry, True, True, 0)
+        self.element.pack_start(self.z_angle_entry, True, True, 0)
         self.element.pack_start(self.rotate_button, False, False, 0)
 
     def on_rotate_button_clicked(self, _):
         if self.rotate_window:
-            self.rotate_window(self.angle_entry.get_text())
-            self.angle_entry.set_text("")
+            self.rotate_window(
+                self.x_angle_entry.get_text(),
+                self.y_angle_entry.get_text(),
+                self.z_angle_entry.get_text(),
+            )
+            for entry in (self.x_angle_entry, self.y_angle_entry, self.z_angle_entry):
+                entry.set_text("")
 
 
 class ClippingRadio:

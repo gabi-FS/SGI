@@ -28,6 +28,7 @@ class Window(GraphicObject):
     _color: tuple
     _normalized_points: list[Point]
     _normalized_center: Point
+    _rotation_matrix: np.array
     _scale_x: float
     _scale_y: float
 
@@ -58,6 +59,14 @@ class Window(GraphicObject):
     def scale_y(self):
         return self._scale_y
 
+    @property
+    def rotation_matrix(self):
+        return self._rotation_matrix
+
+    @property
+    def inverse_rotation_matrix(self):
+        return np.linalg.inv(self._rotation_matrix)
+
     def draw(
         self,
         context: cairo.Context,
@@ -87,7 +96,7 @@ class Window(GraphicObject):
                 0 < factor < 1  : zoom in
                 factor > 1      : zoom out
         """
-        matrix = Transformation.get_scaling_about_point(self._center, factor, factor)
+        matrix = Transformation.get_scaling_about_point(self._center, factor, factor, 1)
         self._points = Transformation.transform_points(self._points, matrix)
         self._scale_x *= factor
         self._scale_y *= factor
@@ -127,10 +136,25 @@ class Window(GraphicObject):
     def right(self, transform: Transformation, distance: int = 10):
         self.translate(transform, distance, 0)
 
-    def rotation(self, angle: float):
-        matrix = Transformation.get_rotation_about_point(self._center, angle)
+    def rotation(self, x_angle: float, y_angle: float, z_angle: float):
+        translation = Transformation.get_translation_matrix(*self._center)
+        # matrix = Transformation.get_rotation_about_point(self._center, angle)
+        x_rad = np.deg2rad(x_angle)
+        y_rad = np.deg2rad(y_angle)
+        z_rad = np.deg2rad(z_angle)
+
+        rotation = Transformation.get_rotation_matrix(x_rad, y_rad, z_rad)
+        print("ROTATION", rotation)
+        translation_back = Transformation.get_translation_matrix(
+            -self._center.x, -self._center.y, -self._center.z
+        )
+        print(translation_back)
+        matrix = translation * rotation * translation_back
+        print("\nMATRIX ", matrix)
         self._points = Transformation.transform_points(self._points, matrix)
         self.compute_center()
+        self._rotation_matrix = rotation @ self._rotation_matrix
+        print(self._rotation_matrix)
 
     def get_up_vector(self) -> Point:
         return self._points[2] - self._points[3]
@@ -267,7 +291,7 @@ class DisplayFile:
         window = self._view_port.window
         self._transformation.set_normalizing_matrix(
             window.center,
-            window.get_up_vector(),
+            window.rotation_matrix,
             window.scale_x,
             window.scale_y,
             0,
@@ -299,10 +323,15 @@ class DisplayFile:
         self._view_port.window.down(self._transformation)
         self.update_normalization()
 
-    def on_rotate(self, angle: float):
+    def on_rotate(
+        self,
+        angle_x: float,
+        angle_y: float,
+        angle_z: float,
+    ):
         """
         Args:
             angle: window rotation angle in degrees
         """
-        self._view_port.window.rotation(angle)
+        self._view_port.window.rotation(angle_x, angle_y, angle_z)
         self.update_normalization()

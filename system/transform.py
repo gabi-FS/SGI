@@ -81,17 +81,17 @@ class Transformation:
 
         trans_type = data_input["type"]
         if trans_type == TranslationType.SCREEN_AXIS:
-            translation_matrix = Transformation.get_rotation_about_point(
-                window_center, window_angle
-            )
+            # translation_matrix = Transformation.get_rotation_about_point(
+            #     window_center, window_angle
+            # )
 
             translation_matrix = (
                 translation_matrix @ Transformation.get_translation_matrix(x, y, z)
             )
-            translation_matrix = (
-                translation_matrix
-                @ Transformation.get_rotation_about_point(window_center, -window_angle)
-            )
+            # translation_matrix = (
+            #     translation_matrix
+            #     @ Transformation.get_rotation_about_point(window_center, -window_angle)
+            # )
         else:
             translation_matrix = Transformation.get_translation_matrix(x, y, z)
 
@@ -136,6 +136,7 @@ class Transformation:
         Returns:
             resulting matrix (numpy array) applying rotation
         """
+        print(data_input)
         angle = data_input["angle"].strip()
         if angle == "":
             return curr_matrix
@@ -208,6 +209,58 @@ class Transformation:
             @ undo_rotation_x
             @ trans_back
         )
+
+    @staticmethod
+    def get_rotation_about_point(
+        point: Point, x_angle: float, y_angle: float, z_angle: float
+    ) -> np.array:
+        """
+        Method to build a rotation matrix about an axis.
+
+        Args:
+            point: point of reference to the rotation
+            rotation_angle: rotation angle in rad
+
+        Returns:
+            rotation matrix (numpy array)
+        """
+        x, y, z = point.x, point.y, point.z
+
+        # levar até a origem
+        trans_to_point = Transformation.get_translation_matrix(x, y, z)
+
+        rotation = Transformation.get_rotation_matrix(x_angle, y_angle, z_angle)
+
+        # trazer de volta para o lugar original e desfazer rotações
+        trans_back = Transformation.get_translation_matrix(-x, -y, -z)
+
+        return trans_to_point @ rotation @ trans_back
+
+    @staticmethod
+    def get_rotation_matrix(x_angle: float, y_angle: float, z_angle: float) -> np.array:
+        """
+        Method to build a 3D rotation matrix.
+
+        Args:
+            rotation_angle: rotation angle in rad
+
+        Returns:
+            rotation matrix (numpy array)
+        """
+
+        print("ROTAÇÃO ", x_angle)
+        print("ROTAÇÃO ", y_angle)
+        print("ROTAÇÃO ", z_angle)
+
+        rotation_x = Transformation.get_rotation_matrix_x(x_angle)
+
+        rotation_y = Transformation.get_rotation_matrix_y(y_angle)
+        rotation_z = Transformation.get_rotation_matrix_z(z_angle)
+        print(f"Rotation x: {rotation_x}\n")
+        print(f"Rotation y: {rotation_y}\n")
+        print(f"Rotation z: {rotation_z}\n")
+
+        return rotation_x @ rotation_y @ rotation_z
 
     @staticmethod
     def get_scaling_about_point(
@@ -379,7 +432,7 @@ class Transformation:
     def set_normalizing_matrix(
         self,
         window_center: Point,
-        up_vector: Point,
+        window_rotation: np.array,
         scale_x: float,
         scale_y: float,
         scale_z: float,
@@ -388,11 +441,14 @@ class Transformation:
             -window_center.x, -window_center.y, -window_center.z
         )
 
-        # ângulo em relação ao eixo y (será o p/ cima normalizado)
-        y_axis = Point(0, 1, 0)
-        angulo = Point.angle_between_vectors(y_axis, up_vector)
-        # angulo = np.rad2deg(angulo)
-        matrix = matrix @ self.get_rotation_about_axis(window_center, y_axis, -angulo)
+        matrix = self.get_translation_matrix(
+            window_center.x, window_center.y, window_center.z
+        )
+        matrix = matrix @ window_rotation
+        matrix = self.get_translation_matrix(
+            -window_center.x, -window_center.y, -window_center.z
+        )
+
         matrix = matrix @ self.get_scaling_about_point(
             window_center, scale_x, scale_y, scale_z
         )
