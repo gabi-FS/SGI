@@ -68,12 +68,12 @@ class Window(GraphicObject):
         return np.linalg.inv(self._rotation_matrix)
 
     def draw(
-            self,
-            context: cairo.Context,
-            viewport_transform,
-            window_min: Point = None,
-            window_max: Point = None,
-            clipping=None,
+        self,
+        context: cairo.Context,
+        viewport_transform,
+        window_min: Point = None,
+        window_max: Point = None,
+        clipping=None,
     ):
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)
@@ -108,7 +108,7 @@ class Window(GraphicObject):
     def zoom_out(self, amount: float = 0.05):
         self.scaling(1.0 - amount)
 
-    def translate(self, transform: Transformation, x, y):
+    def translate(self, transform: Transformation, x, y, z=0):
         """
         Translates the window by a specified x and y distance.
 
@@ -117,10 +117,10 @@ class Window(GraphicObject):
             x: translating factor in x-axis
             y: translating factor in y-axis
         """
-        angle = self.get_rotation_angle()
-        matrix = transform.get_rotation_about_point(self._center, angle)
-        matrix = matrix @ transform.get_translation_matrix(x, y)
-        matrix = matrix @ transform.get_rotation_about_point(self._center, -angle)
+
+        matrix = self._rotation_matrix
+        matrix = matrix @ transform.get_translation_matrix(x, y, z)
+        matrix = matrix @ self.inverse_rotation_matrix
         self._points = transform.transform_points(self._points, matrix)
         self.compute_center()
 
@@ -152,7 +152,7 @@ class Window(GraphicObject):
         )
         print(translation_back)
         # TODO: SHOULD BE @??
-        matrix = translation * rotation * translation_back
+        matrix = translation @ rotation @ translation_back
         print("\nMATRIX ", matrix)
         self._points = Transformation.transform_points(self._points, matrix)
         self.compute_center()
@@ -176,7 +176,7 @@ class ViewPort:
     _clipping_type: LineClippingType
 
     def __init__(
-            self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
+        self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
     ) -> None:
         if size and window:
             self._size = size
@@ -261,7 +261,7 @@ class DisplayFile:
         obj.update_normalized_points(new_points)
 
     def transform_object(
-            self, object_id: int, object_input: Dict[TransformationType, Any]
+        self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -327,10 +327,10 @@ class DisplayFile:
         self.update_normalization()
 
     def on_rotate(
-            self,
-            angle_x: float,
-            angle_y: float,
-            angle_z: float,
+        self,
+        angle_x: float,
+        angle_y: float,
+        angle_z: float,
     ):
         """
         Args:
