@@ -71,16 +71,18 @@ class Validation:
     @staticmethod
     def _rotation(input_object: dict):
         type_value = input_object["type"]
-        angle_value = input_object["angle"].strip()
+        x, y = input_object["x"].strip(), input_object["y"].strip()
         try:
-            if angle_value != "":
-                float(angle_value)
+            if x != "":
+                float(x)
+            if y != "":
+                float(y)
         except ValueError:
             raise ValidationError("O valor do ângulo precisa ser numérico")
 
         if RotationType.AROUND_POINT == type_value:
             point_value = input_object["point"].strip()
-            if angle_value != "":
+            if x != "":
                 if point_value == "":
                     raise ValidationError(
                         "O ponto precisa ser preenchido caso o ângulo seja preenchido para esse tipo de rotação."

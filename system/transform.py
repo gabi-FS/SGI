@@ -22,7 +22,7 @@ class Transformation:
     def get_transformed_points(
         graphic_object: GraphicObject,
         transform_input: Dict[TransformationType, Any],
-        window_angle: float,
+        window_rotation: np.array,
         window_center: Point,
     ) -> list[Point]:
         """
@@ -34,7 +34,7 @@ class Transformation:
         transforming_matrix = Transformation.apply_translation(
             transforming_matrix,
             transform_input[TransformationType.TRANSLATION],
-            window_angle,
+            window_rotation,
             window_center,
         )
 
@@ -60,7 +60,7 @@ class Transformation:
     def apply_translation(
         curr_matrix: np.array,
         data_input: Dict[str, str],
-        window_angle: float = None,
+        window_rotation: np.array = None,
         window_center: Point = None,
     ) -> np.array:
         """
@@ -137,21 +137,29 @@ class Transformation:
             resulting matrix (numpy array) applying rotation
         """
         print(data_input)
-        angle = data_input["angle"].strip()
-        if angle == "":
+        try:
+            (x, y, z) = get_tuple_from_object(data_input, 1)
+        except ValueError:
             return curr_matrix
-        rotation_type, angle = data_input["type"], float(angle)
+
+        rotation_type = data_input["type"]
+        x_angle = np.deg2rad(x)
+        y_angle = np.deg2rad(y)
+        z_angle = np.deg2rad(z)
+
         match rotation_type:
             case RotationType.WORLD_CENTER:
-                rotation_matrix = Transformation.get_rotation_matrix(angle)
+                rotation_matrix = Transformation.get_rotation_matrix(
+                    x_angle, y_angle, z_angle
+                )
             case RotationType.OBJECT_CENTER:
                 rotation_matrix = Transformation.get_rotation_about_point(
-                    object_center, angle
+                    object_center, x_angle, y_angle, z_angle
                 )
             case RotationType.AROUND_POINT:
                 numbers = get_tuple_from_str(data_input["point"])
                 rotation_matrix = Transformation.get_rotation_about_point(
-                    Point(*numbers), angle
+                    Point(*numbers), x_angle, y_angle, z_angle
                 )
         return curr_matrix @ rotation_matrix
 

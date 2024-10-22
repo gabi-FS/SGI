@@ -157,13 +157,35 @@ class RotationPage:
         main_input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         main_input_box.set_border_width(10)
 
-        angle_input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        self.angle_input = Gtk.Entry()
-        self.angle_input.set_placeholder_text("0")
+        # angle_input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        # self.angle_input = Gtk.Entry()
+        # self.angle_input.set_placeholder_text("0")
+        # angle_input_box.pack_start(
+        #     Gtk.Label(label="Ângulo (em graus):"), False, False, 0
+        # )
+        # angle_input_box.pack_start(self.angle_input, False, False, 0)
+
+        angle_input_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        angle_input_box.set_border_width(10)
+        self.entry_x = Gtk.Entry()
+        self.entry_x.set_placeholder_text("0")
+
+        self.entry_y = Gtk.Entry()
+        self.entry_y.set_placeholder_text("0")
+
+        self.entry_z = Gtk.Entry()
+        self.entry_z.set_placeholder_text("0")
+
         angle_input_box.pack_start(
             Gtk.Label(label="Ângulo (em graus):"), False, False, 0
         )
-        angle_input_box.pack_start(self.angle_input, False, False, 0)
+
+        angle_input_box.pack_start(Gtk.Label(label="X:"), False, False, 0)
+        angle_input_box.pack_start(self.entry_x, True, True, 0)
+        angle_input_box.pack_start(Gtk.Label(label="Y:"), False, False, 0)
+        angle_input_box.pack_start(self.entry_y, True, True, 0)
+        angle_input_box.pack_start(Gtk.Label(label="Z:"), False, False, 0)
+        angle_input_box.pack_start(self.entry_z, True, True, 0)
 
         self.point_input_box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL, spacing=10
@@ -199,7 +221,9 @@ class RotationPage:
     def get_input_object(self):
         return {
             "type": self.selected_radio,
-            "angle": self.angle_input.get_text(),
+            "x": self.entry_x.get_text(),
+            "y": self.entry_y.get_text(),
+            "z": self.entry_z.get_text(),
             "point": self.point_input.get_text(),
         }
 

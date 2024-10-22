@@ -69,6 +69,7 @@ class GraphicObject(ABC):
         raise NotImplementedError
 
     def draw_line(self, context: cairo.Context, point1: Point, point2: Point):
+        # print(self._normalized_points[0])
         context.set_source_rgb(*self._color)
         context.set_line_width(2)
         context.move_to(point1.x, point1.y)
@@ -245,6 +246,7 @@ class WireframeObject(GraphicObject):
         window_max: Point,
         clipping: Clipping,
     ):
+
         point = self._normalized_points[index]
         if clipping.clip_point(window_max, window_min, point):
             new_point = viewport_transform(point)

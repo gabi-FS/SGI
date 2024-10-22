@@ -137,7 +137,9 @@ class Window(GraphicObject):
         self.translate(transform, distance, 0)
 
     def rotation(self, x_angle: float, y_angle: float, z_angle: float):
-        translation = Transformation.get_translation_matrix(*self._center)
+        translation = Transformation.get_translation_matrix(
+            self._center.x, self._center.y, self._center.z
+        )
         # matrix = Transformation.get_rotation_about_point(self._center, angle)
         x_rad = np.deg2rad(x_angle)
         y_rad = np.deg2rad(y_angle)
@@ -264,7 +266,7 @@ class DisplayFile:
         new_points = self.transformation.get_transformed_points(
             graphic_object,
             object_input,
-            window_angle=self._view_port.window.get_rotation_angle(),
+            window_rotation=self._view_port.window.rotation_matrix,
             window_center=self._view_port.window.center,
         )
         graphic_object.update_points(new_points)
