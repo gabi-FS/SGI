@@ -68,12 +68,12 @@ class Window(GraphicObject):
         return np.linalg.inv(self._rotation_matrix)
 
     def draw(
-        self,
-        context: cairo.Context,
-        viewport_transform,
-        window_min: Point = None,
-        window_max: Point = None,
-        clipping=None,
+            self,
+            context: cairo.Context,
+            viewport_transform,
+            window_min: Point = None,
+            window_max: Point = None,
+            clipping=None,
     ):
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)
@@ -151,6 +151,7 @@ class Window(GraphicObject):
             -self._center.x, -self._center.y, -self._center.z
         )
         print(translation_back)
+        # TODO: SHOULD BE @??
         matrix = translation * rotation * translation_back
         print("\nMATRIX ", matrix)
         self._points = Transformation.transform_points(self._points, matrix)
@@ -175,7 +176,7 @@ class ViewPort:
     _clipping_type: LineClippingType
 
     def __init__(
-        self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
+            self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
     ) -> None:
         if size and window:
             self._size = size
@@ -260,7 +261,7 @@ class DisplayFile:
         obj.update_normalized_points(new_points)
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -326,10 +327,10 @@ class DisplayFile:
         self.update_normalization()
 
     def on_rotate(
-        self,
-        angle_x: float,
-        angle_y: float,
-        angle_z: float,
+            self,
+            angle_x: float,
+            angle_y: float,
+            angle_z: float,
     ):
         """
         Args:
