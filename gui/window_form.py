@@ -34,11 +34,11 @@ class WindowForm:
         menu_box.add_element(Gtk.Separator())
 
     def connect_panning_buttons(
-        self,
-        on_up: Callable[[], None],
-        on_left: Callable[[], None],
-        on_right: Callable[[], None],
-        on_down: Callable[[], None],
+            self,
+            on_up: Callable[[], None],
+            on_left: Callable[[], None],
+            on_right: Callable[[], None],
+            on_down: Callable[[], None],
     ):
         self._panning_box.external_on_button_up = on_up
         self._panning_box.external_on_button_left = on_left
@@ -46,7 +46,7 @@ class WindowForm:
         self._panning_box.external_on_button_down = on_down
 
     def connect_zoom_buttons(
-        self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
+            self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
     ):
         self._zoom_box.external_zoom_in = zoom_in
         self._zoom_box.external_zoom_out = zoom_out
@@ -151,24 +151,36 @@ class RotationInput:
     rotate_window: Callable[[str], None]
 
     def __init__(self):
-        self.element = Gtk.Box(spacing=10)
+        self.element = Gtk.Box(spacing=10, orientation=Gtk.Orientation.VERTICAL)
+        wrapper = Gtk.Box(spacing=10)
 
         self.x_angle_entry = Gtk.Entry()
-        self.x_angle_entry.set_placeholder_text("Ângulo (em graus)")
+        self.x_angle_entry.set_placeholder_text("0")
+        self.x_angle_entry.set_width_chars(4)
 
         self.y_angle_entry = Gtk.Entry()
-        self.y_angle_entry.set_placeholder_text("Ângulo (em graus)")
+        self.y_angle_entry.set_placeholder_text("0")
+        self.y_angle_entry.set_width_chars(4)
 
         self.z_angle_entry = Gtk.Entry()
-        self.z_angle_entry.set_placeholder_text("Ângulo (em graus)")
+        self.z_angle_entry.set_placeholder_text("0")
+        self.z_angle_entry.set_width_chars(4)
 
         self.rotate_button = Gtk.Button(label="Rotacionar")
         self.rotate_button.connect("clicked", self.on_rotate_button_clicked)
 
-        self.element.pack_start(self.x_angle_entry, True, True, 0)
-        self.element.pack_start(self.y_angle_entry, True, True, 0)
-        self.element.pack_start(self.z_angle_entry, True, True, 0)
-        self.element.pack_start(self.rotate_button, False, False, 0)
+        info_label = Gtk.Label(label="Ângulo (em graus): ")
+        info_label.set_halign(Gtk.Align.START)
+
+        wrapper.pack_start(Gtk.Label(label="X:"), False, False, 0)
+        wrapper.pack_start(self.x_angle_entry, False, False, 0)
+        wrapper.pack_start(Gtk.Label(label="Y:"), False, False, 0)
+        wrapper.pack_start(self.y_angle_entry, False, False, 0)
+        wrapper.pack_start(Gtk.Label(label="Z:"), False, False, 0)
+        wrapper.pack_start(self.z_angle_entry, False, False, 0)
+        wrapper.pack_start(self.rotate_button, False, False, 0)
+        self.element.pack_start(info_label, False, False, 0)
+        self.element.pack_start(wrapper, False, False, 0)
 
     def on_rotate_button_clicked(self, _):
         if self.rotate_window:
