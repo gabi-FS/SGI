@@ -81,17 +81,14 @@ class Transformation:
 
         trans_type = data_input["type"]
         if trans_type == TranslationType.SCREEN_AXIS:
-            # translation_matrix = Transformation.get_rotation_about_point(
-            #     window_center, window_angle
-            # )
+
+            translation_matrix = window_rotation
 
             translation_matrix = (
                 translation_matrix @ Transformation.get_translation_matrix(x, y, z)
             )
-            # translation_matrix = (
-            #     translation_matrix
-            #     @ Transformation.get_rotation_about_point(window_center, -window_angle)
-            # )
+            translation_matrix = translation_matrix @ np.linalg.inv(window_rotation)
+
         else:
             translation_matrix = Transformation.get_translation_matrix(x, y, z)
 
