@@ -297,7 +297,7 @@ class DisplayFile:
             window.rotation_matrix,
             window.scale_x,
             window.scale_y,
-            0,
+            1,
         )
         for obj in self._objects.values():
             self.normalize_object(obj)
