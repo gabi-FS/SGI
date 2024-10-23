@@ -443,22 +443,18 @@ class Transformation:
         scale_y: float,
         scale_z: float,
     ) -> np.array:
-        matrix = self.get_translation_matrix(
+
+        translate_window_center = self.get_translation_matrix(
             -window_center.x, -window_center.y, -window_center.z
         )
+        scale = self.get_scaling_matrix(scale_x, scale_y, scale_z)
+        rotate = window_rotation
 
-        # rotation about window center
-        matrix = matrix @ self.get_translation_matrix(
-            window_center.x, window_center.y, window_center.z
-        )
-        matrix = matrix @ window_rotation
-        matrix = matrix @ self.get_translation_matrix(
-            -window_center.x, -window_center.y, -window_center.z
-        )
+        # As transformações são aplicadas na ordem invertida, então, nessa ordem:
+        #       - transladar o mundo até o centro
+        #       - rotacionar no mesmo ângulo da window
+        #       - escalonar na proporção da window
+        self._normalizing_matrix = scale @ rotate @ translate_window_center
 
-        matrix = matrix @ self.get_scaling_about_point(
-            window_center, scale_x, scale_y, scale_z
-        )
-        self._normalizing_matrix = matrix
-        print("NORMALIZING MATRIX: \n", matrix)
-        return matrix
+        print("NORMALIZING MATRIX: \n", self._normalizing_matrix)
+        return self._normalizing_matrix

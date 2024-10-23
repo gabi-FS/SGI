@@ -137,7 +137,7 @@ class Window(GraphicObject):
         self.translate(transform, distance, 0)
 
     def rotation(self, x_angle: float, y_angle: float, z_angle: float):
-        translation = Transformation.get_translation_matrix(
+        translation_back = Transformation.get_translation_matrix(
             self._center.x, self._center.y, self._center.z
         )
         # matrix = Transformation.get_rotation_about_point(self._center, angle)
@@ -147,14 +147,16 @@ class Window(GraphicObject):
 
         rotation = Transformation.get_rotation_matrix(x_rad, y_rad, z_rad)
         print("ROTATION", rotation)
-        translation_back = Transformation.get_translation_matrix(
+        translation = Transformation.get_translation_matrix(
             -self._center.x, -self._center.y, -self._center.z
         )
         print(translation_back)
-        # TODO: SHOULD BE @??
-        matrix = translation @ rotation @ translation_back
+
+        matrix = translation_back @ rotation @ translation
         print("\nMATRIX ", matrix)
         self._points = Transformation.transform_points(self._points, matrix)
+        print("Window points:")
+        print(*self._points)
         self.compute_center()
         self._rotation_matrix = rotation @ self._rotation_matrix
         print(self._rotation_matrix)
