@@ -118,13 +118,13 @@ class Window(GraphicObject):
             y: translating factor in y-axis
         """
 
-        translate_back_from_origin = matrix = transform.get_translation_matrix(
+        translate_back_from_origin = transform.get_translation_matrix(
             self._center.x, self._center.y, self._center.z
         )
         rotate_again = self._rotation_matrix
         translate_amount = transform.get_translation_matrix(x, y, z)
         undo_rotation = self.inverse_rotation_matrix
-        translate_back_to_origin = matrix = transform.get_translation_matrix(
+        translate_back_to_origin = transform.get_translation_matrix(
             -self._center.x, -self._center.y, -self._center.z
         )
 
@@ -161,7 +161,7 @@ class Window(GraphicObject):
         translation_back = Transformation.get_translation_matrix(
             self._center.x, self._center.y, self._center.z
         )
-        # matrix = Transformation.get_rotation_about_point(self._center, angle)
+
         x_rad = np.deg2rad(x_angle)
         y_rad = np.deg2rad(y_angle)
         z_rad = np.deg2rad(z_angle)

@@ -82,12 +82,23 @@ class Transformation:
         trans_type = data_input["type"]
         if trans_type == TranslationType.SCREEN_AXIS:
 
-            translation_matrix = window_rotation
+            translate_back_from_origin = Transformation.get_translation_matrix(
+                window_center.x, window_center.y, window_center.z
+            )
+            rotate_again = window_rotation
+            translate_amount = Transformation.get_translation_matrix(x, y, z)
+            undo_rotation = np.linalg.inv(window_rotation)
+            translate_back_to_origin = Transformation.get_translation_matrix(
+                -window_center.x, -window_center.y, -window_center.z
+            )
 
             translation_matrix = (
-                translation_matrix @ Transformation.get_translation_matrix(x, y, z)
+                translate_back_from_origin
+                @ undo_rotation
+                @ translate_amount
+                @ rotate_again
+                @ translate_back_to_origin
             )
-            translation_matrix = translation_matrix @ np.linalg.inv(window_rotation)
 
         else:
             translation_matrix = Transformation.get_translation_matrix(x, y, z)
