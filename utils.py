@@ -34,10 +34,10 @@ def parse_input(
 
 
 def get_tuple_from_str(string: str) -> Tuple[float, float]:
-    """a single tuple with two numbers from a string in (number, number) format"""
+    """a single tuple with two numbers from a string in (number, number, number) format"""
     matches = re.findall(TUPLE_PATTERN, string)
-    number1, number2 = matches[0].split(",")
-    return float(number1.strip()), float(number2.strip())
+    number1, number2, number3 = matches[0].split(",")
+    return float(number1.strip()), float(number2.strip()), float(number3.strip())
 
 
 def get_tuple_from_object(

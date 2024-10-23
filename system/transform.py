@@ -166,6 +166,7 @@ class Transformation:
                 )
             case RotationType.AROUND_POINT:
                 numbers = get_tuple_from_str(data_input["point"])
+                print(*numbers)
                 rotation_matrix = Transformation.get_rotation_about_point(
                     Point(*numbers), x_angle, y_angle, z_angle
                 )
