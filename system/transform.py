@@ -348,9 +348,6 @@ class Transformation:
         Returns:
             rotation matrix (numpy array)
         """
-        # angle_rad = np.deg2rad([angle])
-        # cos = np.cos(angle_rad)[0]
-        # sin = np.sin(angle_rad)[0]
         cos = np.cos(angle)
         sin = np.sin(angle)
         return np.array(
@@ -373,9 +370,6 @@ class Transformation:
         Returns:
             rotation matrix (numpy array)
         """
-        # angle_rad = np.deg2rad([angle])
-        # cos = np.cos(angle_rad)[0]
-        # sin = np.sin(angle_rad)[0]
         cos = np.cos(angle)
         sin = np.sin(angle)
         return np.array(
@@ -398,9 +392,6 @@ class Transformation:
         Returns:
             rotation matrix (numpy array)
         """
-        # angle_rad = np.deg2rad([angle])
-        # cos = np.cos(angle_rad)[0]
-        # sin = np.sin(angle_rad)[0]
         cos = np.cos(angle)
         sin = np.sin(angle)
 
@@ -412,28 +403,6 @@ class Transformation:
                 [0, 0, 0, 1],
             ]
         )
-
-    # def rotation_normalizing_matrix(
-    #     self, window_center: Point, up_vector: Point
-    # ) -> np.array:
-    #     angulo = Point.angle_between_vectors(Point(0, 1), up_vector)
-    #     # angulo = np.rad2deg(angulo)
-    #     matrix = self.get_rotation_about_point(
-    #         window_center, angulo
-    #     )  # está em rad e tem que mudar para deg
-
-    #     return matrix
-
-    # def rotation_denormalizing_matrix(
-    #     self, window_center: Point, up_vector: Point
-    # ) -> np.array:
-    #     angulo = Point.angle_between_vectors(Point(0, 1), up_vector)
-    #     angulo = np.rad2deg(angulo)
-    #     matrix = self.get_rotation_about_point(
-    #         window_center, -angulo
-    #     )  # está em rad e tem que mudar para deg
-
-    #     return matrix
 
     def set_normalizing_matrix(
         self,
