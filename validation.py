@@ -58,31 +58,57 @@ class Validation:
             raise ValidationError(e)
 
     @staticmethod
-    def _translation(input_object: dict[str, str]):
-        x, y = input_object["x"].strip(), input_object["y"].strip()
+    def _validate_xyz(input_object: dict[str, str], error_message: str):
+        x, y, z = (
+            input_object["x"].strip(),
+            input_object["y"].strip(),
+            input_object["z"].strip(),
+        )
         try:
             if x != "":
                 float(x)
             if y != "":
                 float(y)
+            if z != "":
+                float(z)
+            return x, y, z
         except ValueError:
-            raise ValidationError("Os valores de translação precisam ser numéricos")
+            raise ValidationError(error_message)
+
+    @staticmethod
+    def _translation(input_object: dict[str, str]):
+        Validation._validate_xyz(
+            input_object,
+            error_message="Os valores de translação precisam ser numéricos",
+        )
+        # x, y = input_object["x"].strip(), input_object["y"].strip()
+        # try:
+        #     if x != "":
+        #         float(x)
+        #     if y != "":
+        #         float(y)
+        # except ValueError:
+        #     raise ValidationError("Os valores de translação precisam ser numéricos")
 
     @staticmethod
     def _rotation(input_object: dict):
+        x, y, z = Validation._validate_xyz(
+            input_object,
+            error_message="O valor do ângulo precisa ser numérico",
+        )
         type_value = input_object["type"]
-        x, y = input_object["x"].strip(), input_object["y"].strip()
-        try:
-            if x != "":
-                float(x)
-            if y != "":
-                float(y)
-        except ValueError:
-            raise ValidationError("O valor do ângulo precisa ser numérico")
+        # x, y = input_object["x"].strip(), input_object["y"].strip()
+        # try:
+        #     if x != "":
+        #         float(x)
+        #     if y != "":
+        #         float(y)
+        # except ValueError:
+        #     raise ValidationError("O valor do ângulo precisa ser numérico")
 
         if RotationType.AROUND_POINT == type_value:
             point_value = input_object["point"].strip()
-            if x != "":
+            if x != "" or y != "" or z != "":
                 if point_value == "":
                     raise ValidationError(
                         "O ponto precisa ser preenchido caso o ângulo seja preenchido para esse tipo de rotação."
@@ -93,16 +119,17 @@ class Validation:
                 if len(matches) != 1:
                     raise ValidationError("A entrada de ponto precisa de uma tupla.")
                 numbers = matches[0].split(",")
-                if len(numbers) != 2:
+                if len(numbers) != 3:
                     raise ValidationError(
-                        f"Tupla inválida (deve conter exatamente dois elementos): {matches[0]}"
+                        f"Tupla inválida (deve conter exatamente três elementos): {matches[0]}"
                     )
                 try:
                     float(numbers[0].strip())
                     float(numbers[1].strip())
+                    float(numbers[2].strip())
                 except ValueError:
                     raise ValidationError(
-                        "Os da tupla de pontos precisam ser numéricos"
+                        "Os valores da tupla de pontos precisam ser numéricos"
                     )
             elif point_value != "":
                 raise ValidationError(
@@ -111,11 +138,15 @@ class Validation:
 
     @staticmethod
     def _scaling(input_object: dict):
-        x, y = input_object["x"].strip(), input_object["y"].strip()
-        try:
-            if x != "":
-                float(x)
-            if y != "":
-                float(y)
-        except ValueError:
-            raise ValidationError("Os valores de escalonamento precisam ser numéricos")
+        x, y, z = Validation._validate_xyz(
+            input_object,
+            error_message="Os valores de escalonamento precisam ser numéricos",
+        )
+        # x, y = input_object["x"].strip(), input_object["y"].strip()
+        # try:
+        #     if x != "":
+        #         float(x)
+        #     if y != "":
+        #         float(y)
+        # except ValueError:
+        #     raise ValidationError("Os valores de escalonamento precisam ser numéricos")
