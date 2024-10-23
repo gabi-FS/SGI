@@ -81,14 +81,6 @@ class Validation:
             input_object,
             error_message="Os valores de translação precisam ser numéricos",
         )
-        # x, y = input_object["x"].strip(), input_object["y"].strip()
-        # try:
-        #     if x != "":
-        #         float(x)
-        #     if y != "":
-        #         float(y)
-        # except ValueError:
-        #     raise ValidationError("Os valores de translação precisam ser numéricos")
 
     @staticmethod
     def _rotation(input_object: dict):
@@ -97,14 +89,6 @@ class Validation:
             error_message="O valor do ângulo precisa ser numérico",
         )
         type_value = input_object["type"]
-        # x, y = input_object["x"].strip(), input_object["y"].strip()
-        # try:
-        #     if x != "":
-        #         float(x)
-        #     if y != "":
-        #         float(y)
-        # except ValueError:
-        #     raise ValidationError("O valor do ângulo precisa ser numérico")
 
         if RotationType.AROUND_POINT == type_value:
             point_value = input_object["point"].strip()
@@ -142,11 +126,3 @@ class Validation:
             input_object,
             error_message="Os valores de escalonamento precisam ser numéricos",
         )
-        # x, y = input_object["x"].strip(), input_object["y"].strip()
-        # try:
-        #     if x != "":
-        #         float(x)
-        #     if y != "":
-        #         float(y)
-        # except ValueError:
-        #     raise ValidationError("Os valores de escalonamento precisam ser numéricos")
