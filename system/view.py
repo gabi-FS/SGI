@@ -118,9 +118,24 @@ class Window(GraphicObject):
             y: translating factor in y-axis
         """
 
-        matrix = self._rotation_matrix
-        matrix = matrix @ transform.get_translation_matrix(x, y, z)
-        matrix = matrix @ self.inverse_rotation_matrix
+        translate_back_from_origin = matrix = transform.get_translation_matrix(
+            self._center.x, self._center.y, self._center.z
+        )
+        rotate_again = self._rotation_matrix
+        translate_amount = transform.get_translation_matrix(x, y, z)
+        undo_rotation = self.inverse_rotation_matrix
+        translate_back_to_origin = matrix = transform.get_translation_matrix(
+            -self._center.x, -self._center.y, -self._center.z
+        )
+
+        matrix = (
+            translate_back_from_origin
+            @ undo_rotation
+            @ translate_amount
+            @ rotate_again
+            @ translate_back_to_origin
+        )
+
         self._points = transform.transform_points(self._points, matrix)
         self.compute_center()
 
@@ -135,6 +150,12 @@ class Window(GraphicObject):
 
     def right(self, transform: Transformation, distance: int = 10):
         self.translate(transform, distance, 0)
+
+    def front(self, transform: Transformation, distance: int = 10):
+        self.translate(transform, 0, 0, distance)
+
+    def back(self, transform: Transformation, distance: int = 10):
+        self.translate(transform, 0, 0, -distance)
 
     def rotation(self, x_angle: float, y_angle: float, z_angle: float):
         translation_back = Transformation.get_translation_matrix(
@@ -326,6 +347,18 @@ class DisplayFile:
 
     def on_down(self):
         self._view_port.window.down(self._transformation)
+        self.update_normalization()
+
+    def on_front(self):
+        print("\n\t\t-------BOTÃO CLICADO--------\n")
+        print(self._view_port.window)
+        self._view_port.window.front(self._transformation)
+        self.update_normalization()
+
+    def on_back(self):
+        print("\n\t\t-------BOTÃO CLICADO--------\n")
+        print(self._view_port.window)
+        self._view_port.window.back(self._transformation)
         self.update_normalization()
 
     def on_rotate(

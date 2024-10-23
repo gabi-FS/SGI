@@ -34,19 +34,23 @@ class WindowForm:
         menu_box.add_element(Gtk.Separator())
 
     def connect_panning_buttons(
-            self,
-            on_up: Callable[[], None],
-            on_left: Callable[[], None],
-            on_right: Callable[[], None],
-            on_down: Callable[[], None],
+        self,
+        on_up: Callable[[], None],
+        on_left: Callable[[], None],
+        on_right: Callable[[], None],
+        on_down: Callable[[], None],
+        on_front: Callable[[], None],
+        on_back: Callable[[], None],
     ):
         self._panning_box.external_on_button_up = on_up
         self._panning_box.external_on_button_left = on_left
         self._panning_box.external_on_button_right = on_right
         self._panning_box.external_on_button_down = on_down
+        self._panning_box.external_on_button_front = on_front
+        self._panning_box.external_on_button_back = on_back
 
     def connect_zoom_buttons(
-            self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
+        self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
     ):
         self._zoom_box.external_zoom_in = zoom_in
         self._zoom_box.external_zoom_out = zoom_out
@@ -102,10 +106,13 @@ class PanningBox:
     external_on_button_left: Callable[[], None]
     external_on_button_right: Callable[[], None]
     external_on_button_down: Callable[[], None]
+    external_on_button_front: Callable[[], None]
+    external_on_button_back: Callable[[], None]
 
     def __init__(self):  # Directional Pad
         self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         grid = Gtk.Grid()
+        grid.set_column_spacing(10)
 
         panning_label = Gtk.Label(label="Panning")
         panning_label.set_xalign(0)
@@ -119,10 +126,18 @@ class PanningBox:
         self.button_down = Gtk.Button(label="↓")
         self.button_down.connect("clicked", self.on_button_down)
 
+        # para frente e para trás
+        self.button_front = Gtk.Button(label="front")
+        self.button_front.connect("clicked", self.on_button_front)
+        self.button_back = Gtk.Button(label="back")
+        self.button_back.connect("clicked", self.on_button_back)
+
         grid.attach(self.button_up, 1, 0, 1, 1)
         grid.attach(self.button_left, 0, 1, 1, 1)
         grid.attach(self.button_right, 2, 1, 1, 1)
         grid.attach(self.button_down, 1, 2, 1, 1)
+        grid.attach(self.button_front, 3, 0, 1, 1)  # Front button in column 3, row 0
+        grid.attach(self.button_back, 3, 1, 1, 1)  # Back button in column 3, row 1
 
         self.element.pack_start(panning_label, False, False, 0)
         self.element.pack_start(grid, False, False, 0)
@@ -142,6 +157,14 @@ class PanningBox:
     def on_button_down(self, _):
         if self.external_on_button_down:
             self.external_on_button_down()
+
+    def on_button_front(self, _):
+        if self.external_on_button_front:
+            self.external_on_button_front()
+
+    def on_button_back(self, _):
+        if self.external_on_button_back:
+            self.external_on_button_back()
 
 
 class RotationInput:
