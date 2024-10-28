@@ -271,41 +271,17 @@ class DisplayFile:
         self.normalize_object(obj)
         self._objects[obj.id] = obj
 
+    @staticmethod
+    def project_point(point, cop_distance=1):
+        """ Projeção em perspectiva """
+
+        if point.z == 0:  # em que caso aconteceria? não previsto
+            return Point(point.x, point.y, point.z)
+        return Point(point.x * cop_distance / point.z, point.y * cop_distance / point.z)
+
     def normalize_object(self, obj: GraphicObject):
-        def size(point1: Point, point2: Point) -> float:
-            """Size of 3D vector between two points."""
-            return ((point1.x - point2.x) ** 2 +
-                    (point1.y - point2.y) ** 2 +
-                    (point1.z - point2.z) ** 2) ** 0.5
-
-        # Obtenha a janela e o centro
-        window = self._view_port.window
-
-        # Defina o tamanho da janela
-        window_size = size(window.points[0], window.points[3])
-        # # Obtenha a janela e o centro
-        COP_DISTANCE = 1  # Usado na projeção
-
-        # Matriz de transformação inicial
-        x, y, z = window.center
-        to_origin = Transformation.get_translation_matrix(-x, -y, -z)
-        rotate = window.inverse_rotation_matrix
-        cop_to_origin = Transformation.get_translation_matrix(0, 0, COP_DISTANCE * (window_size / 2))
-        scale = Transformation.get_scaling_matrix(window.scale_x, window.scale_y, window.scale_x)
-
-        # Aplicando inversamente
-        matrix = scale @ cop_to_origin @ rotate @ to_origin
-
-        # Projeção em perspectiva para cada ponto transformado
-        def project(point):
-            # Evita divisão por zero, caso z seja zero
-            if point.z == 0:
-                return Point(point.x, point.y, point.z)
-            return Point(point.x * COP_DISTANCE / point.z, point.y * COP_DISTANCE / point.z)
-
-        new_points = Transformation.transform_points(obj.points, matrix)
-
-        obj.update_normalized_points([project(p) for p in new_points])
+        new_points = Transformation.transform_points(obj.points, self._transformation.normalizing_matrix)
+        obj.update_normalized_points([self.project_point(p) for p in new_points])
 
     def transform_object(
             self, object_id: int, object_input: Dict[TransformationType, Any]
@@ -339,13 +315,7 @@ class DisplayFile:
 
     def update_normalization(self):
         window = self._view_port.window
-        self._transformation.set_normalizing_matrix(
-            window.center,
-            window.rotation_matrix,
-            window.scale_x,
-            window.scale_y,
-            1,
-        )
+        self._transformation.set_normalizing_matrix(window)
         for obj in self._objects.values():
             self.normalize_object(obj)
 

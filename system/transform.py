@@ -403,25 +403,23 @@ class Transformation:
             ]
         )
 
-    def set_normalizing_matrix(
-            self,
-            window_center: Point,
-            window_rotation: np.array,
-            scale_x: float,
-            scale_y: float,
-            scale_z: float,
-    ) -> np.array:
+    def set_normalizing_matrix(self, window, cop_distance=1) -> np.array:
+        """ Normaliza considerando projeção em perspectiva"""
 
-        translate_window_center = self.get_translation_matrix(
-            -window_center.x, -window_center.y, -window_center.z
-        )
-        scale = self.get_scaling_matrix(scale_x, scale_y, scale_z)
-        rotate = window_rotation
+        def size(point1: Point, point2: Point) -> float:
+            """Size of 3D vector between two points."""
+            return ((point1.x - point2.x) ** 2 +
+                    (point1.y - point2.y) ** 2 +
+                    (point1.z - point2.z) ** 2) ** 0.5
 
-        # As transformações são aplicadas na ordem invertida, então, nessa ordem:
-        #       - transladar o mundo até o centro
-        #       - rotacionar no mesmo ângulo da window
-        #       - escalonar na proporção da window
-        self._normalizing_matrix = scale @ rotate @ translate_window_center
+        window_size = size(window.points[0], window.points[3])
+        x, y, z = window.center
 
+        tr_to_origin = Transformation.get_translation_matrix(-x, -y, -z)
+        rotate = window.rotation_matrix  # That or inverted?
+        tr_cop_to_origin = Transformation.get_translation_matrix(0, 0, cop_distance * (window_size / 2))
+        scale = Transformation.get_scaling_matrix(window.scale_x, window.scale_y, window.scale_x)
+
+        #  As transformações são aplicadas na ordem invertida
+        self._normalizing_matrix = scale @ tr_cop_to_origin @ rotate @ tr_to_origin
         return self._normalizing_matrix
