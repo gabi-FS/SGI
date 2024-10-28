@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 import cairo
 import numpy as np
+from cupshelpers.ppds import normalize
 
 from globals import LineClippingType, ObjectType, TransformationType
 from system.basics import Point
@@ -68,12 +69,12 @@ class Window(GraphicObject):
         return np.linalg.inv(self._rotation_matrix)
 
     def draw(
-        self,
-        context: cairo.Context,
-        viewport_transform,
-        window_min: Point = None,
-        window_max: Point = None,
-        clipping=None,
+            self,
+            context: cairo.Context,
+            viewport_transform,
+            window_min: Point = None,
+            window_max: Point = None,
+            clipping=None,
     ):
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)
@@ -129,11 +130,11 @@ class Window(GraphicObject):
         )
 
         matrix = (
-            translate_back_from_origin
-            @ undo_rotation
-            @ translate_amount
-            @ rotate_again
-            @ translate_back_to_origin
+                translate_back_from_origin
+                @ undo_rotation
+                @ translate_amount
+                @ rotate_again
+                @ translate_back_to_origin
         )
 
         self._points = transform.transform_points(self._points, matrix)
@@ -167,20 +168,14 @@ class Window(GraphicObject):
         z_rad = np.deg2rad(z_angle)
 
         rotation = Transformation.get_rotation_matrix(x_rad, y_rad, z_rad)
-        print("ROTATION", rotation)
         translation = Transformation.get_translation_matrix(
             -self._center.x, -self._center.y, -self._center.z
         )
-        print(translation_back)
 
         matrix = translation_back @ rotation @ translation
-        print("\nMATRIX ", matrix)
         self._points = Transformation.transform_points(self._points, matrix)
-        print("Window points:")
-        print(*self._points)
         self.compute_center()
         self._rotation_matrix = rotation @ self._rotation_matrix
-        print(self._rotation_matrix)
 
     def get_up_vector(self) -> Point:
         return self._points[2] - self._points[3]
@@ -199,7 +194,7 @@ class ViewPort:
     _clipping_type: LineClippingType
 
     def __init__(
-        self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
+            self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
     ) -> None:
         if size and window:
             self._size = size
@@ -242,7 +237,6 @@ class DisplayFile:
 
     def create_object(self, object_type, name, input_data, color) -> int:
         new_input = [Point(*x) for x in input_data]
-        print(*new_input)
         n_points = len(new_input)
         match object_type:
             case ObjectType.POINT:
@@ -278,13 +272,43 @@ class DisplayFile:
         self._objects[obj.id] = obj
 
     def normalize_object(self, obj: GraphicObject):
-        new_points = self._transformation.transform_points(
-            obj.points, self._transformation.normalizing_matrix
-        )
-        obj.update_normalized_points(new_points)
+        def size(point1: Point, point2: Point) -> float:
+            """Size of 3D vector between two points."""
+            return ((point1.x - point2.x) ** 2 +
+                    (point1.y - point2.y) ** 2 +
+                    (point1.z - point2.z) ** 2) ** 0.5
+
+        # Obtenha a janela e o centro
+        window = self._view_port.window
+
+        # Defina o tamanho da janela
+        window_size = size(window.points[0], window.points[3])
+        # # Obtenha a janela e o centro
+        COP_DISTANCE = 1  # Usado na projeção
+
+        # Matriz de transformação inicial
+        x, y, z = window.center
+        to_origin = Transformation.get_translation_matrix(-x, -y, -z)
+        rotate = window.inverse_rotation_matrix
+        cop_to_origin = Transformation.get_translation_matrix(0, 0, COP_DISTANCE * (window_size / 2))
+        scale = Transformation.get_scaling_matrix(window.scale_x, window.scale_y, window.scale_x)
+
+        # Aplicando inversamente
+        matrix = scale @ cop_to_origin @ rotate @ to_origin
+
+        # Projeção em perspectiva para cada ponto transformado
+        def project(point):
+            # Evita divisão por zero, caso z seja zero
+            if point.z == 0:
+                return Point(point.x, point.y, point.z)
+            return Point(point.x * COP_DISTANCE / point.z, point.y * COP_DISTANCE / point.z)
+
+        new_points = Transformation.transform_points(obj.points, matrix)
+
+        obj.update_normalized_points([project(p) for p in new_points])
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -350,22 +374,18 @@ class DisplayFile:
         self.update_normalization()
 
     def on_front(self):
-        print("\n\t\t-------BOTÃO CLICADO--------\n")
-        print(self._view_port.window)
         self._view_port.window.front(self._transformation)
         self.update_normalization()
 
     def on_back(self):
-        print("\n\t\t-------BOTÃO CLICADO--------\n")
-        print(self._view_port.window)
         self._view_port.window.back(self._transformation)
         self.update_normalization()
 
     def on_rotate(
-        self,
-        angle_x: float,
-        angle_y: float,
-        angle_z: float,
+            self,
+            angle_x: float,
+            angle_y: float,
+            angle_z: float,
     ):
         """
         Args:

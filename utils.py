@@ -7,7 +7,7 @@ TUPLE_PATTERN = r"\(([^)]+)\)"
 
 
 def parse_input(
-    input_str: str,
+        input_str: str,
 ) -> List[Tuple[float, float]] | List[Tuple[float, float, float]]:
     matches = re.findall(TUPLE_PATTERN, input_str)
     result = []
@@ -25,7 +25,6 @@ def parse_input(
             numbers_tuple = tuple(numbers_tuple)
 
             result.append(numbers_tuple)
-            print(result)
         except ValueError:
             raise ValueError(
                 f"Os valores fornecidos na tupla não são números válidos: {match}"
@@ -41,7 +40,7 @@ def get_tuple_from_str(string: str) -> Tuple[float, float]:
 
 
 def get_tuple_from_object(
-    data_input: Dict[str, str], default_value: int = 0
+        data_input: Dict[str, str], default_value: int = 0
 ) -> Tuple[float, float, float]:
     """
     Args:

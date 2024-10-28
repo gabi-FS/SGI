@@ -20,10 +20,10 @@ class Transformation:
 
     @staticmethod
     def get_transformed_points(
-        graphic_object: GraphicObject,
-        transform_input: Dict[TransformationType, Any],
-        window_rotation: np.array,
-        window_center: Point,
+            graphic_object: GraphicObject,
+            transform_input: Dict[TransformationType, Any],
+            window_rotation: np.array,
+            window_center: Point,
     ) -> list[Point]:
         """
         Dada a entrada e os dados do objeto, retorna novos pontos com as transformações aplicadas.
@@ -58,10 +58,10 @@ class Transformation:
 
     @staticmethod
     def apply_translation(
-        curr_matrix: np.array,
-        data_input: Dict[str, str],
-        window_rotation: np.array = None,
-        window_center: Point = None,
+            curr_matrix: np.array,
+            data_input: Dict[str, str],
+            window_rotation: np.array = None,
+            window_center: Point = None,
     ) -> np.array:
         """
         Method to apply translation matrix.
@@ -93,11 +93,11 @@ class Transformation:
             )
 
             translation_matrix = (
-                translate_back_from_origin
-                @ undo_rotation
-                @ translate_amount
-                @ rotate_again
-                @ translate_back_to_origin
+                    translate_back_from_origin
+                    @ undo_rotation
+                    @ translate_amount
+                    @ rotate_again
+                    @ translate_back_to_origin
             )
 
         else:
@@ -107,7 +107,7 @@ class Transformation:
 
     @staticmethod
     def apply_scale(
-        curr_matrix, data_input: Dict[str, str], object_center: Point
+            curr_matrix, data_input: Dict[str, str], object_center: Point
     ) -> np.array:
         """
         Method to apply scaling matrix.
@@ -131,7 +131,7 @@ class Transformation:
 
     @staticmethod
     def apply_rotation(
-        curr_matrix: np.array, data_input: Dict[str, str], object_center: Point
+            curr_matrix: np.array, data_input: Dict[str, str], object_center: Point
     ) -> np.array:
         """
         Method to apply rotation matrix. It multiplies the current matrix by the rotation from data input and object.
@@ -144,7 +144,6 @@ class Transformation:
         Returns:
             resulting matrix (numpy array) applying rotation
         """
-        print(data_input)
         try:
             x, y, z = get_tuple_from_object(data_input)
         except ValueError:
@@ -166,7 +165,6 @@ class Transformation:
                 )
             case RotationType.AROUND_POINT:
                 numbers = get_tuple_from_str(data_input["point"])
-                print(*numbers)
                 rotation_matrix = Transformation.get_rotation_about_point(
                     Point(*numbers), x_angle, y_angle, z_angle
                 )
@@ -175,7 +173,6 @@ class Transformation:
     @staticmethod
     def transform_points(points: list[Point], matrix: np.array) -> list[Point]:
         result = []
-        print("Transform matrix: \n", matrix)
         for point in points:
             coord = matrix @ np.array(point.get_homogeneous_matrix())
             new_point = Point(coord[0, 0], coord[1, 0], coord[2, 0])
@@ -184,7 +181,7 @@ class Transformation:
 
     @staticmethod
     def get_rotation_about_axis(
-        point: Point, axis: Point, rotation_angle: float
+            point: Point, axis: Point, rotation_angle: float
     ) -> np.array:
         """
         Method to build a rotation matrix about an axis.
@@ -219,18 +216,18 @@ class Transformation:
         undo_rotation_z = Transformation.get_rotation_matrix_z(-z_angle)
 
         return (
-            trans_to_point
-            @ rotation_x
-            @ rotation_z
-            @ true_rotation
-            @ undo_rotation_z
-            @ undo_rotation_x
-            @ trans_back
+                trans_to_point
+                @ rotation_x
+                @ rotation_z
+                @ true_rotation
+                @ undo_rotation_z
+                @ undo_rotation_x
+                @ trans_back
         )
 
     @staticmethod
     def get_rotation_about_point(
-        point: Point, x_angle: float, y_angle: float, z_angle: float
+            point: Point, x_angle: float, y_angle: float, z_angle: float
     ) -> np.array:
         """
         Method to build a rotation matrix about an axis.
@@ -265,24 +262,14 @@ class Transformation:
         Returns:
             rotation matrix (numpy array)
         """
-
-        print("ROTAÇÃO ", x_angle)
-        print("ROTAÇÃO ", y_angle)
-        print("ROTAÇÃO ", z_angle)
-
         rotation_x = Transformation.get_rotation_matrix_x(x_angle)
-
         rotation_y = Transformation.get_rotation_matrix_y(y_angle)
         rotation_z = Transformation.get_rotation_matrix_z(z_angle)
-        print(f"Rotation x: {rotation_x}\n")
-        print(f"Rotation y: {rotation_y}\n")
-        print(f"Rotation z: {rotation_z}\n")
-
         return rotation_x @ rotation_y @ rotation_z
 
     @staticmethod
     def get_scaling_about_point(
-        point: Point, x_factor: float, y_factor: float, z_factor: float
+            point: Point, x_factor: float, y_factor: float, z_factor: float
     ) -> np.array:
         """
         Method to build a scaling matrix about a point.
@@ -303,7 +290,7 @@ class Transformation:
 
     @staticmethod
     def get_scaling_matrix(
-        x_factor: float, y_factor: float, z_factor: float
+            x_factor: float, y_factor: float, z_factor: float
     ) -> np.array:
         """
         Method to build a scaling matrix.
@@ -327,7 +314,7 @@ class Transformation:
 
     @staticmethod
     def get_translation_matrix(
-        x_factor: float, y_factor: float, z_factor: float
+            x_factor: float, y_factor: float, z_factor: float
     ) -> np.array:
         """
         Method to build a translation matrix.
@@ -417,12 +404,12 @@ class Transformation:
         )
 
     def set_normalizing_matrix(
-        self,
-        window_center: Point,
-        window_rotation: np.array,
-        scale_x: float,
-        scale_y: float,
-        scale_z: float,
+            self,
+            window_center: Point,
+            window_rotation: np.array,
+            scale_x: float,
+            scale_y: float,
+            scale_z: float,
     ) -> np.array:
 
         translate_window_center = self.get_translation_matrix(
@@ -437,5 +424,4 @@ class Transformation:
         #       - escalonar na proporção da window
         self._normalizing_matrix = scale @ rotate @ translate_window_center
 
-        print("NORMALIZING MATRIX: \n", self._normalizing_matrix)
         return self._normalizing_matrix
