@@ -34,19 +34,23 @@ class WindowForm:
         menu_box.add_element(Gtk.Separator())
 
     def connect_panning_buttons(
-            self,
-            on_up: Callable[[], None],
-            on_left: Callable[[], None],
-            on_right: Callable[[], None],
-            on_down: Callable[[], None],
+        self,
+        on_up: Callable[[], None],
+        on_left: Callable[[], None],
+        on_right: Callable[[], None],
+        on_down: Callable[[], None],
+        on_front: Callable[[], None],
+        on_back: Callable[[], None],
     ):
         self._panning_box.external_on_button_up = on_up
         self._panning_box.external_on_button_left = on_left
         self._panning_box.external_on_button_right = on_right
         self._panning_box.external_on_button_down = on_down
+        self._panning_box.external_on_button_front = on_front
+        self._panning_box.external_on_button_back = on_back
 
     def connect_zoom_buttons(
-            self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
+        self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
     ):
         self._zoom_box.external_zoom_in = zoom_in
         self._zoom_box.external_zoom_out = zoom_out
@@ -102,10 +106,13 @@ class PanningBox:
     external_on_button_left: Callable[[], None]
     external_on_button_right: Callable[[], None]
     external_on_button_down: Callable[[], None]
+    external_on_button_front: Callable[[], None]
+    external_on_button_back: Callable[[], None]
 
     def __init__(self):  # Directional Pad
         self.element = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         grid = Gtk.Grid()
+        grid.set_column_spacing(10)
 
         panning_label = Gtk.Label(label="Panning")
         panning_label.set_xalign(0)
@@ -119,10 +126,18 @@ class PanningBox:
         self.button_down = Gtk.Button(label="↓")
         self.button_down.connect("clicked", self.on_button_down)
 
+        # para frente e para trás
+        self.button_front = Gtk.Button(label="front")
+        self.button_front.connect("clicked", self.on_button_front)
+        self.button_back = Gtk.Button(label="back")
+        self.button_back.connect("clicked", self.on_button_back)
+
         grid.attach(self.button_up, 1, 0, 1, 1)
         grid.attach(self.button_left, 0, 1, 1, 1)
         grid.attach(self.button_right, 2, 1, 1, 1)
         grid.attach(self.button_down, 1, 2, 1, 1)
+        grid.attach(self.button_front, 3, 0, 1, 1)  # Front button in column 3, row 0
+        grid.attach(self.button_back, 3, 1, 1, 1)  # Back button in column 3, row 1
 
         self.element.pack_start(panning_label, False, False, 0)
         self.element.pack_start(grid, False, False, 0)
@@ -143,6 +158,14 @@ class PanningBox:
         if self.external_on_button_down:
             self.external_on_button_down()
 
+    def on_button_front(self, _):
+        if self.external_on_button_front:
+            self.external_on_button_front()
+
+    def on_button_back(self, _):
+        if self.external_on_button_back:
+            self.external_on_button_back()
+
 
 class RotationInput:
     element: Gtk.Box
@@ -151,20 +174,46 @@ class RotationInput:
     rotate_window: Callable[[str], None]
 
     def __init__(self):
-        self.element = Gtk.Box(spacing=10)
+        self.element = Gtk.Box(spacing=10, orientation=Gtk.Orientation.VERTICAL)
+        wrapper = Gtk.Box(spacing=10)
 
-        self.angle_entry = Gtk.Entry()
-        self.angle_entry.set_placeholder_text("Ângulo (em graus)")
+        self.x_angle_entry = Gtk.Entry()
+        self.x_angle_entry.set_placeholder_text("0")
+        self.x_angle_entry.set_width_chars(4)
+
+        self.y_angle_entry = Gtk.Entry()
+        self.y_angle_entry.set_placeholder_text("0")
+        self.y_angle_entry.set_width_chars(4)
+
+        self.z_angle_entry = Gtk.Entry()
+        self.z_angle_entry.set_placeholder_text("0")
+        self.z_angle_entry.set_width_chars(4)
+
         self.rotate_button = Gtk.Button(label="Rotacionar")
         self.rotate_button.connect("clicked", self.on_rotate_button_clicked)
 
-        self.element.pack_start(self.angle_entry, True, True, 0)
-        self.element.pack_start(self.rotate_button, False, False, 0)
+        info_label = Gtk.Label(label="Ângulo (em graus): ")
+        info_label.set_halign(Gtk.Align.START)
+
+        wrapper.pack_start(Gtk.Label(label="X:"), False, False, 0)
+        wrapper.pack_start(self.x_angle_entry, False, False, 0)
+        wrapper.pack_start(Gtk.Label(label="Y:"), False, False, 0)
+        wrapper.pack_start(self.y_angle_entry, False, False, 0)
+        wrapper.pack_start(Gtk.Label(label="Z:"), False, False, 0)
+        wrapper.pack_start(self.z_angle_entry, False, False, 0)
+        wrapper.pack_start(self.rotate_button, False, False, 0)
+        self.element.pack_start(info_label, False, False, 0)
+        self.element.pack_start(wrapper, False, False, 0)
 
     def on_rotate_button_clicked(self, _):
         if self.rotate_window:
-            self.rotate_window(self.angle_entry.get_text())
-            self.angle_entry.set_text("")
+            self.rotate_window(
+                self.x_angle_entry.get_text(),
+                self.y_angle_entry.get_text(),
+                self.z_angle_entry.get_text(),
+            )
+            for entry in (self.x_angle_entry, self.y_angle_entry, self.z_angle_entry):
+                entry.set_text("")
 
 
 class ClippingRadio:

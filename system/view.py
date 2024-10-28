@@ -28,6 +28,7 @@ class Window(GraphicObject):
     _color: tuple
     _normalized_points: list[Point]
     _normalized_center: Point
+    _rotation_matrix: np.array
     _scale_x: float
     _scale_y: float
 
@@ -58,6 +59,14 @@ class Window(GraphicObject):
     def scale_y(self):
         return self._scale_y
 
+    @property
+    def rotation_matrix(self):
+        return self._rotation_matrix
+
+    @property
+    def inverse_rotation_matrix(self):
+        return np.linalg.inv(self._rotation_matrix)
+
     def draw(
         self,
         context: cairo.Context,
@@ -87,7 +96,7 @@ class Window(GraphicObject):
                 0 < factor < 1  : zoom in
                 factor > 1      : zoom out
         """
-        matrix = Transformation.get_scaling_about_point(self._center, factor, factor)
+        matrix = Transformation.get_scaling_about_point(self._center, factor, factor, 1)
         self._points = Transformation.transform_points(self._points, matrix)
         self._scale_x *= factor
         self._scale_y *= factor
@@ -99,7 +108,7 @@ class Window(GraphicObject):
     def zoom_out(self, amount: float = 0.05):
         self.scaling(1.0 - amount)
 
-    def translate(self, transform: Transformation, x, y):
+    def translate(self, transform: Transformation, x, y, z=0):
         """
         Translates the window by a specified x and y distance.
 
@@ -108,10 +117,25 @@ class Window(GraphicObject):
             x: translating factor in x-axis
             y: translating factor in y-axis
         """
-        angle = self.get_rotation_angle()
-        matrix = transform.get_rotation_about_point(self._center, angle)
-        matrix = matrix @ transform.get_translation_matrix(x, y)
-        matrix = matrix @ transform.get_rotation_about_point(self._center, -angle)
+
+        translate_back_from_origin = transform.get_translation_matrix(
+            self._center.x, self._center.y, self._center.z
+        )
+        rotate_again = self._rotation_matrix
+        translate_amount = transform.get_translation_matrix(x, y, z)
+        undo_rotation = self.inverse_rotation_matrix
+        translate_back_to_origin = transform.get_translation_matrix(
+            -self._center.x, -self._center.y, -self._center.z
+        )
+
+        matrix = (
+            translate_back_from_origin
+            @ undo_rotation
+            @ translate_amount
+            @ rotate_again
+            @ translate_back_to_origin
+        )
+
         self._points = transform.transform_points(self._points, matrix)
         self.compute_center()
 
@@ -127,10 +151,36 @@ class Window(GraphicObject):
     def right(self, transform: Transformation, distance: int = 10):
         self.translate(transform, distance, 0)
 
-    def rotation(self, angle: float):
-        matrix = Transformation.get_rotation_about_point(self._center, angle)
+    def front(self, transform: Transformation, distance: int = 10):
+        self.translate(transform, 0, 0, distance)
+
+    def back(self, transform: Transformation, distance: int = 10):
+        self.translate(transform, 0, 0, -distance)
+
+    def rotation(self, x_angle: float, y_angle: float, z_angle: float):
+        translation_back = Transformation.get_translation_matrix(
+            self._center.x, self._center.y, self._center.z
+        )
+
+        x_rad = np.deg2rad(x_angle)
+        y_rad = np.deg2rad(y_angle)
+        z_rad = np.deg2rad(z_angle)
+
+        rotation = Transformation.get_rotation_matrix(x_rad, y_rad, z_rad)
+        print("ROTATION", rotation)
+        translation = Transformation.get_translation_matrix(
+            -self._center.x, -self._center.y, -self._center.z
+        )
+        print(translation_back)
+
+        matrix = translation_back @ rotation @ translation
+        print("\nMATRIX ", matrix)
         self._points = Transformation.transform_points(self._points, matrix)
+        print("Window points:")
+        print(*self._points)
         self.compute_center()
+        self._rotation_matrix = rotation @ self._rotation_matrix
+        print(self._rotation_matrix)
 
     def get_up_vector(self) -> Point:
         return self._points[2] - self._points[3]
@@ -240,7 +290,7 @@ class DisplayFile:
         new_points = self.transformation.get_transformed_points(
             graphic_object,
             object_input,
-            window_angle=self._view_port.window.get_rotation_angle(),
+            window_rotation=self._view_port.window.rotation_matrix,
             window_center=self._view_port.window.center,
         )
         graphic_object.update_points(new_points)
@@ -266,7 +316,11 @@ class DisplayFile:
     def update_normalization(self):
         window = self._view_port.window
         self._transformation.set_normalizing_matrix(
-            window.center, window.get_up_vector(), window.scale_x, window.scale_y
+            window.center,
+            window.rotation_matrix,
+            window.scale_x,
+            window.scale_y,
+            1,
         )
         for obj in self._objects.values():
             self.normalize_object(obj)
@@ -295,10 +349,27 @@ class DisplayFile:
         self._view_port.window.down(self._transformation)
         self.update_normalization()
 
-    def on_rotate(self, angle: float):
+    def on_front(self):
+        print("\n\t\t-------BOTÃO CLICADO--------\n")
+        print(self._view_port.window)
+        self._view_port.window.front(self._transformation)
+        self.update_normalization()
+
+    def on_back(self):
+        print("\n\t\t-------BOTÃO CLICADO--------\n")
+        print(self._view_port.window)
+        self._view_port.window.back(self._transformation)
+        self.update_normalization()
+
+    def on_rotate(
+        self,
+        angle_x: float,
+        angle_y: float,
+        angle_z: float,
+    ):
         """
         Args:
             angle: window rotation angle in degrees
         """
-        self._view_port.window.rotation(angle)
+        self._view_port.window.rotation(angle_x, angle_y, angle_z)
         self.update_normalization()

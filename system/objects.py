@@ -21,6 +21,7 @@ class GraphicObject(ABC):
     _color: tuple
     _normalized_points: list[Point]
     _normalized_center: Point
+    _rotation_matrix: np.array
 
     def __init__(self, name: str, points: list, color) -> None:
         self._id = GraphicObject._id_increment
@@ -30,6 +31,17 @@ class GraphicObject(ABC):
         self._color = color
         self._normalized_points = points
         self._normalized_center = self.compute_center()
+        self._rotation_matrix = np.identity(4)
+
+    def __str__(self):
+        points_str = "".join([("\n\t\t" + str(p)) for p in self._points])
+        return (
+            f"GraphicObject: "
+            f"\n\t id: {self._id}"
+            f"\n\t name: {self._name}"
+            f"\n\t color: {self._color}"
+            f"\n\t points: {points_str}"
+        )
 
     @property
     def id(self):
@@ -67,6 +79,7 @@ class GraphicObject(ABC):
         raise NotImplementedError
 
     def draw_line(self, context: cairo.Context, point1: Point, point2: Point):
+        # print(self._normalized_points[0])
         context.set_source_rgb(*self._color)
         context.set_line_width(2)
         context.move_to(point1.x, point1.y)
@@ -91,7 +104,7 @@ class GraphicObject(ABC):
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = ObjectDescriptor(self._name)
-        descriptor.vertices = [(p.x, p.y, 0.0) for p in self._points]
+        descriptor.vertices = [(p.x, p.y, p.z) for p in self._points]
         descriptor.color = self._color
         descriptor.id = self.id
         return descriptor
@@ -243,6 +256,7 @@ class WireframeObject(GraphicObject):
         window_max: Point,
         clipping: Clipping,
     ):
+
         point = self._normalized_points[index]
         if clipping.clip_point(window_max, window_min, point):
             new_point = viewport_transform(point)

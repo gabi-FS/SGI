@@ -57,7 +57,12 @@ class SGI:
         self.main_window.menu_box.set_on_create_object(self.add_object)
         window_form.connect_zoom_buttons(self.zoom_in, self.zoom_out)
         window_form.connect_panning_buttons(
-            self.go_up, self.go_left, self.go_right, self.go_down
+            self.go_up,
+            self.go_left,
+            self.go_right,
+            self.go_down,
+            self.go_front,
+            self.go_back,
         )
         window_form.connect_rotate_window(self.rotate)
         window_form.connect_change_clipping(self.change_clipping_type)
@@ -151,9 +156,28 @@ class SGI:
         self.display_file.on_down()
         self.main_window.drawing_area.queue_draw()
 
-    def rotate(self, angle: str):
+    def go_front(self):
+        self.display_file.on_front()
+        self.main_window.drawing_area.queue_draw()
+
+    def go_back(self):
+        self.display_file.on_back()
+        self.main_window.drawing_area.queue_draw()
+
+    def rotate(
+        self,
+        angle_x: str,
+        angle_y: str,
+        angle_z: str,
+    ):
         try:
-            self.display_file.on_rotate(float(angle))
+            # TODO: do nothing if all empty
+
+            a_x = float(angle_x) if angle_x.strip() else 0.0
+            a_y = float(angle_y) if angle_y.strip() else 0.0
+            a_z = float(angle_z) if angle_z.strip() else 0.0
+
+            self.display_file.on_rotate(a_x, a_y, a_z)
             self.main_window.drawing_area.queue_draw()
         except ValueError:
             print("Não foi possível converter entrada para numérico.")

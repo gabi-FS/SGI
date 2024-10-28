@@ -34,30 +34,35 @@ def parse_input(
 
 
 def get_tuple_from_str(string: str) -> Tuple[float, float]:
-    """a single tuple with two numbers from a string in (number, number) format"""
+    """a single tuple with two numbers from a string in (number, number, number) format"""
     matches = re.findall(TUPLE_PATTERN, string)
-    number1, number2 = matches[0].split(",")
-    return float(number1.strip()), float(number2.strip())
+    number1, number2, number3 = matches[0].split(",")
+    return float(number1.strip()), float(number2.strip()), float(number3.strip())
 
 
 def get_tuple_from_object(
     data_input: Dict[str, str], default_value: int = 0
-) -> Tuple[float, float]:
-    """_summary_
+) -> Tuple[float, float, float]:
+    """
     Args:
-        data_input (Dict[str, str]): objeto que possui chaves "x" e "y"
+        data_input (Dict[str, str]): objeto que possui chaves "x", "y" e "z"
         default_value (int, optional): substitui o valor de um dos números caso ele não exista.
 
     Raises:
-        ValueError: Os dois valores (x e y) estão vazios.
+        ValueError: Os 3 valores (x, y e z) estão vazios.
     """
-    input_x, input_y = data_input["x"].strip(), data_input["y"].strip()
-    if input_x == "" and input_y == "":
-        raise ValueError("Os dois valores estão vazios")
-    elif input_x == "" and input_y != "":
-        x, y = default_value, float(input_y)
-    elif input_x != "" and input_y == "":
-        x, y = float(input_x), default_value
-    else:
-        x, y = float(input_x), float(input_y)
-    return x, y
+    input_x, input_y, input_z = (
+        data_input["x"].strip(),
+        data_input["y"].strip(),
+        data_input["z"].strip(),
+    )
+    if input_x == "" and input_y == "" and input_z == "":
+        raise ValueError("Os 3 valores estão vazios")
+
+    inputs_list = []
+    for i in (input_x, input_y, input_z):
+        if i == "":
+            inputs_list.append(default_value)
+        else:
+            inputs_list.append(float(i))
+    return inputs_list
