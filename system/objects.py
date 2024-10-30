@@ -99,7 +99,6 @@ class GraphicObject(ABC):
         self.compute_center()
 
     def update_normalized_points(self, new_points: list[Point]):
-        print([print(point) for point in new_points])
         self._normalized_points = new_points
         self.compute_normalized_center()
 

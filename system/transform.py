@@ -416,9 +416,10 @@ class Transformation:
         x, y, z = window.center
 
         tr_to_origin = Transformation.get_translation_matrix(-x, -y, -z)
-        rotate = window.rotation_matrix  # That or inverted?
+        rotate = window.rotation_matrix
         tr_cop_to_origin = Transformation.get_translation_matrix(0, 0, cop_distance * (window_size / 2))
-        scale = Transformation.get_scaling_matrix(window.scale_x, window.scale_y, window.scale_x)
+        scale = Transformation.get_scaling_matrix(window.scale_x, window.scale_y, 2 / window_size)
+        # print(window.scale_x, window.scale_y, 2 / window_size)
 
         #  As transformações são aplicadas na ordem invertida
         self._normalizing_matrix = scale @ tr_cop_to_origin @ rotate @ tr_to_origin
