@@ -69,12 +69,12 @@ class Window(GraphicObject):
         return np.linalg.inv(self._rotation_matrix)
 
     def draw(
-            self,
-            context: cairo.Context,
-            viewport_transform,
-            window_min: Point = None,
-            window_max: Point = None,
-            clipping=None,
+        self,
+        context: cairo.Context,
+        viewport_transform,
+        window_min: Point = None,
+        window_max: Point = None,
+        clipping=None,
     ):
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)
@@ -97,7 +97,9 @@ class Window(GraphicObject):
                 0 < factor < 1  : zoom in
                 factor > 1      : zoom out
         """
-        matrix = Transformation.get_scaling_about_point(self._center, factor, factor, 1)
+        matrix = Transformation.get_scaling_about_point(
+            self._center, factor, factor, 1, self.rotation_matrix
+        )
         self._points = Transformation.transform_points(self._points, matrix)
         self._scale_x *= factor
         self._scale_y *= factor
@@ -130,11 +132,11 @@ class Window(GraphicObject):
         )
 
         matrix = (
-                translate_back_from_origin
-                @ undo_rotation
-                @ translate_amount
-                @ rotate_again
-                @ translate_back_to_origin
+            translate_back_from_origin
+            @ rotate_again
+            @ translate_amount
+            @ undo_rotation
+            @ translate_back_to_origin
         )
 
         self._points = transform.transform_points(self._points, matrix)
@@ -194,7 +196,7 @@ class ViewPort:
     _clipping_type: LineClippingType
 
     def __init__(
-            self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
+        self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
     ) -> None:
         if size and window:
             self._size = size
@@ -273,18 +275,20 @@ class DisplayFile:
 
     @staticmethod
     def project_point(point, cop_distance=1):
-        """ Projeção em perspectiva """
+        """Projeção em perspectiva"""
 
         if point.z == 0:  # em que caso aconteceria? não previsto
             return Point(point.x, point.y, point.z)
         return Point(point.x * cop_distance / point.z, point.y * cop_distance / point.z)
 
     def normalize_object(self, obj: GraphicObject):
-        new_points = Transformation.transform_points(obj.points, self._transformation.normalizing_matrix)
+        new_points = Transformation.transform_points(
+            obj.points, self._transformation.normalizing_matrix
+        )
         obj.update_normalized_points([self.project_point(p) for p in new_points])
 
     def transform_object(
-            self, object_id: int, object_input: Dict[TransformationType, Any]
+        self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -352,10 +356,10 @@ class DisplayFile:
         self.update_normalization()
 
     def on_rotate(
-            self,
-            angle_x: float,
-            angle_y: float,
-            angle_z: float,
+        self,
+        angle_x: float,
+        angle_y: float,
+        angle_z: float,
     ):
         """
         Args:

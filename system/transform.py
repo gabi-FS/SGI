@@ -269,7 +269,11 @@ class Transformation:
 
     @staticmethod
     def get_scaling_about_point(
-        point: Point, x_factor: float, y_factor: float, z_factor: float
+        point: Point,
+        x_factor: float,
+        y_factor: float,
+        z_factor: float,
+        rotation_matrix: np.array = np.identity(4),
     ) -> np.array:
         """
         Method to build a scaling matrix about a point.
@@ -283,10 +287,16 @@ class Transformation:
             scaling matrix (numpy array)
         """
         x, y, z = point.x, point.y, point.z
-        trans_to_point = Transformation.get_translation_matrix(x, y, z)
+        trans_back = Transformation.get_translation_matrix(x, y, z)
         scaling = Transformation.get_scaling_matrix(x_factor, y_factor, z_factor)
-        trans_back = Transformation.get_translation_matrix(-x, -y, -z)
-        return trans_to_point @ scaling @ trans_back
+        trans_to_point = Transformation.get_translation_matrix(-x, -y, -z)
+        return (
+            trans_back
+            @ rotation_matrix
+            @ scaling
+            @ np.linalg.inv(rotation_matrix)
+            @ trans_to_point
+        )
 
     @staticmethod
     def get_scaling_matrix(
