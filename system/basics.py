@@ -81,3 +81,12 @@ class Point:
         center = Point(center_x, center_y, center_z)
 
         return center
+
+    @classmethod
+    def size(cls, point1: "Point", point2: "Point") -> float:
+        """Size of 3D vector between two points."""
+        return (
+            (point1.x - point2.x) ** 2
+            + (point1.y - point2.y) ** 2
+            + (point1.z - point2.z) ** 2
+        ) ** 0.5
