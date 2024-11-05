@@ -466,3 +466,62 @@ class BSplineCurve(Curve):
             computed_points.append(Point(new_x, new_y))
 
         return computed_points
+
+
+class BezierSurface(GraphicObject):
+    def __init__(self, name: str, control_points: List[List[Point]], color, drawing_step=30) -> None:
+        self._drawing_step = drawing_step
+        surface_points = self.compute_surface_points(control_points)  # Gera os pontos da superfície
+        super().__init__(name, surface_points, color)
+
+    # TODO: Avaliar esse código
+    def compute_surface_points(self, points) -> List[Point]:
+        # Matriz de Bézier cúbica
+        m = np.array([[1, 0, 0, 0], [-3, 3, 0, 0], [3, -6, 3, 0], [-1, 3, -3, 1]])
+        computed_points = []
+
+        # Criação das matrizes de coordenadas
+        geometry_matrix_x = np.array([[p.x for p in row] for row in points])
+        geometry_matrix_y = np.array([[p.y for p in row] for row in points])
+        geometry_matrix_z = np.array([[p.z for p in row] for row in points])
+
+        # Calcular pontos na superfície
+        for i in range(self._drawing_step + 1):
+            s = i / self._drawing_step
+            s_vector = np.array([1, s, s ** 2, s ** 3]) @ m  # Multiplicação do vetor de parâmetro pela matriz Bézier
+
+            for j in range(self._drawing_step + 1):
+                t = j / self._drawing_step
+                t_vector = m @ np.array([[1], [t], [t ** 2], [t ** 3]])  # Vetor de parâmetro transposto
+
+                # Calcular coordenadas x, y, z usando a multiplicação das matrizes
+                x_value = s_vector @ geometry_matrix_x @ t_vector
+                y_value = s_vector @ geometry_matrix_y @ t_vector
+                z_value = s_vector @ geometry_matrix_z @ t_vector
+
+                # Os resultados são arrays 1D, então pegamos o primeiro elemento
+                computed_points.append(Point(x_value[0], y_value[0], z_value[0]))
+
+        return computed_points
+
+    # TODO: Como desenhar a superfície? Quais são as linhas? Dá pra criar uma grade...
+    def draw(
+            self,
+            context: cairo.Context,
+            viewport_transform: Callable[[Point], Point],
+            window_min: Point,
+            window_max: Point,
+            clipping: Clipping,
+    ):
+        last_point, *others = self.normalized_points
+        for next_point in others:
+            new_line = clipping.clip_line(
+                window_max, window_min, last_point, next_point
+            )
+            if new_line:
+                initial_point = viewport_transform(new_line[0])
+                end_point = viewport_transform(new_line[1])
+                super().draw_line(context, initial_point, end_point)
+            last_point = next_point
+
+    # TODO: Como exportar para wavefront?

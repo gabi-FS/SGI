@@ -14,7 +14,7 @@ from system.objects import (
     PointObject,
     WireframeObject,
     BezierCurve,
-    BSplineCurve,
+    BSplineCurve, BezierSurface,
 )
 from system.transform import Transformation
 
@@ -239,12 +239,11 @@ class DisplayFile:
 
     def create_object(self, object_type, name, input_data, color) -> int:
         if object_type == ObjectType.BEZIER_SURFACE:
-            print(input_data)
             new_input = []
             n_points = 0
             for line in input_data:
                 new_line = [Point(*x) for x in line]
-                n_points += len(new_line)  # É utilizado?
+                n_points += len(new_line)  # É utilizado? Precisa?
                 new_input.append(new_line)
         else:
             new_input = [Point(*x) for x in input_data]
@@ -275,9 +274,7 @@ class DisplayFile:
             case ObjectType.BSPLINE_CURVE:
                 obj = BSplineCurve(name, new_input, color)
             case ObjectType.BEZIER_SURFACE:
-                print(new_input)
-                obj = PointObject(name, [Point(0, 0)], color)
-            # TODO: trocar
+                obj = BezierSurface(name, new_input, color)
         self.add_object(obj)
         self.normalize_object(obj)
         return obj.id
