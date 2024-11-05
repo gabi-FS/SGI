@@ -13,6 +13,7 @@ class ObjectType(Enum):
     POLYGON = 5
     BEZIER_CURVE = 6
     BSPLINE_CURVE = 7
+    BEZIER_SURFACE = 8
 
 
 class TransformationType(Enum):

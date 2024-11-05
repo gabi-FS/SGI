@@ -69,12 +69,12 @@ class Window(GraphicObject):
         return np.linalg.inv(self._rotation_matrix)
 
     def draw(
-        self,
-        context: cairo.Context,
-        viewport_transform,
-        window_min: Point = None,
-        window_max: Point = None,
-        clipping=None,
+            self,
+            context: cairo.Context,
+            viewport_transform,
+            window_min: Point = None,
+            window_max: Point = None,
+            clipping=None,
     ):
         first_point, *others = self._normalized_points
         new_first_point = viewport_transform(first_point)
@@ -132,11 +132,11 @@ class Window(GraphicObject):
         )
 
         matrix = (
-            translate_back_from_origin
-            @ undo_rotation
-            @ translate_amount
-            @ rotate_again
-            @ translate_back_to_origin
+                translate_back_from_origin
+                @ undo_rotation
+                @ translate_amount
+                @ rotate_again
+                @ translate_back_to_origin
         )
 
         self._points = transform.transform_points(self._points, matrix)
@@ -196,7 +196,7 @@ class ViewPort:
     _clipping_type: LineClippingType
 
     def __init__(
-        self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
+            self, size: tuple[int, int] = None, window: Window = None, area: float = 0.10
     ) -> None:
         if size and window:
             self._size = size
@@ -238,8 +238,17 @@ class DisplayFile:
         self._clipping.line_type = new_type
 
     def create_object(self, object_type, name, input_data, color) -> int:
-        new_input = [Point(*x) for x in input_data]
-        n_points = len(new_input)
+        if object_type == ObjectType.BEZIER_SURFACE:
+            print(input_data)
+            new_input = []
+            n_points = 0
+            for line in input_data:
+                new_line = [Point(*x) for x in line]
+                n_points += len(new_line)  # É utilizado?
+                new_input.append(new_line)
+        else:
+            new_input = [Point(*x) for x in input_data]
+            n_points = len(new_input)
         match object_type:
             case ObjectType.POINT:
                 obj = PointObject(name, new_input, color)
@@ -265,6 +274,10 @@ class DisplayFile:
                 obj = BezierCurve(name, new_input, color)
             case ObjectType.BSPLINE_CURVE:
                 obj = BSplineCurve(name, new_input, color)
+            case ObjectType.BEZIER_SURFACE:
+                print(new_input)
+                obj = PointObject(name, [Point(0, 0)], color)
+            # TODO: trocar
         self.add_object(obj)
         self.normalize_object(obj)
         return obj.id
@@ -302,7 +315,7 @@ class DisplayFile:
         print()
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ):
         graphic_object = self.get_object(object_id)
         new_points = self.transformation.get_transformed_points(
@@ -370,10 +383,10 @@ class DisplayFile:
         self.update_normalization()
 
     def on_rotate(
-        self,
-        angle_x: float,
-        angle_y: float,
-        angle_z: float,
+            self,
+            angle_x: float,
+            angle_y: float,
+            angle_z: float,
     ):
         """
         Args:

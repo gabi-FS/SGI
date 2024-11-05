@@ -68,14 +68,21 @@ class SGI:
         window_form.connect_change_clipping(self.change_clipping_type)
 
     def add_object(
-        self, object_type: ObjectType, name: str, input_str: str, color: tuple[float]
+            self, object_type: ObjectType, name: str, input_str: str, color: tuple[float]
     ) -> int:
         """Função executada ao clicar em 'Adicionar objeto'"""
         try:
-            parsed_input: (
-                List[Tuple[float, float]] | List[Tuple[float, float, float]]
-            ) = parse_input(input_str)
-            Validation.object_coordinates_input(parsed_input, object_type)
+            if ObjectType.BEZIER_SURFACE == object_type:
+                parsed_input = []  # Matriz de inputs (lista de pontos)
+                lines = input_str.split(";")
+                for line in lines:
+                    parsed_line = parse_input(line)
+                    parsed_input.append(parsed_line)
+            else:
+                parsed_input: (
+                        List[Tuple[float, float]] | List[Tuple[float, float, float]]
+                ) = parse_input(input_str)
+                Validation.object_coordinates_input(parsed_input, object_type)
 
             name = name if name else object_type.name.title()
             object_id = self.display_file.create_object(
@@ -94,7 +101,7 @@ class SGI:
             return -1
 
     def transform_object(
-        self, object_id: int, object_input: Dict[TransformationType, Any]
+            self, object_id: int, object_input: Dict[TransformationType, Any]
     ) -> int:
         """
         object_input:
@@ -165,10 +172,10 @@ class SGI:
         self.main_window.drawing_area.queue_draw()
 
     def rotate(
-        self,
-        angle_x: str,
-        angle_y: str,
-        angle_z: str,
+            self,
+            angle_x: str,
+            angle_y: str,
+            angle_z: str,
     ):
         try:
             # TODO: do nothing if all empty
