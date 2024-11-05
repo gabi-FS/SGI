@@ -133,9 +133,9 @@ class Window(GraphicObject):
 
         matrix = (
             translate_back_from_origin
-            @ rotate_again
-            @ translate_amount
             @ undo_rotation
+            @ translate_amount
+            @ rotate_again
             @ translate_back_to_origin
         )
 
@@ -278,14 +278,28 @@ class DisplayFile:
         """Projeção em perspectiva"""
 
         if point.z == 0:  # em que caso aconteceria? não previsto
+            print("ENTROU NO IF")
             return Point(point.x, point.y, point.z)
+        if point.z <= 0:
+            return None
+        print("PROJETANDO:")
+        print("\n".join([str(x) for x in point]))
+        print()
         return Point(point.x * cop_distance / point.z, point.y * cop_distance / point.z)
 
     def normalize_object(self, obj: GraphicObject):
         new_points = Transformation.transform_points(
             obj.points, self._transformation.normalizing_matrix
         )
-        obj.update_normalized_points([self.project_point(p) for p in new_points])
+        projected_points = []
+        for p in new_points:
+            new_p = self.project_point(p)
+            if new_p:
+                projected_points.append(new_p)
+
+        obj.update_normalized_points(projected_points)
+        print("\n".join([str(x) for x in obj.normalized_points]))
+        print()
 
     def transform_object(
         self, object_id: int, object_input: Dict[TransformationType, Any]

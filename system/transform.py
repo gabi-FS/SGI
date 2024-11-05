@@ -175,6 +175,7 @@ class Transformation:
         result = []
         for point in points:
             coord = matrix @ np.array(point.get_homogeneous_matrix())
+            print(coord)
             new_point = Point(coord[0, 0], coord[1, 0], coord[2, 0])
             result.append(new_point)
         return result
@@ -427,7 +428,9 @@ class Transformation:
         scale = Transformation.get_scaling_matrix(
             window.scale_x, window.scale_y, 2 / window_size
         )
-        # print(window.scale_x, window.scale_y, 2 / window_size)
+        print(window.scale_x, window.scale_y, 2 / window_size)
+        print(window_size)
+        print()
 
         #  As transformações são aplicadas na ordem invertida
         self._normalizing_matrix = scale @ tr_cop_to_origin @ rotate @ tr_to_origin
