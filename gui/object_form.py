@@ -104,6 +104,7 @@ class ObjectRadio:
         self.add_button("Curva (Bézier)", ObjectType.BEZIER_CURVE)
         self.add_button("Curva (B-Spline)", ObjectType.BSPLINE_CURVE)
         self.add_button("Superfície (Bézier)", ObjectType.BEZIER_SURFACE)
+        self.add_button("Superfície (B-spline)", ObjectType.BSPLINE_SURFACE)
 
         for button in self.buttons:
             self.element.pack_start(button, False, False, 0)

@@ -1,13 +1,14 @@
+import math
 from abc import ABC, abstractmethod
 from typing import Callable, List
 
 import cairo
+import numpy as np
 
 from globals import ObjectType
 from system.basics import Point
 from system.clipping import Clipping
 from system.files import ObjectDescriptor
-import numpy as np
 
 
 class GraphicObject(ABC):
@@ -468,11 +469,12 @@ class BSplineCurve(Curve):
         return computed_points
 
 
-class BezierSurface(GraphicObject):
-    def __init__(self, name: str, control_points: List[List[Point]], color, drawing_step=30) -> None:
+class BezierSurface(WireframeObject):
+    def __init__(self, name: str, control_points: List[List[Point]], color, drawing_step=15) -> None:
         self._drawing_step = drawing_step
+        line_indexes = self.save_indexes()
         surface_points = self.compute_surface_points(control_points)  # Gera os pontos da superfície
-        super().__init__(name, surface_points, color)
+        super().__init__(name, surface_points, color, wtype=ObjectType.BEZIER_SURFACE, lines_indexes=line_indexes)
 
     # TODO: Avaliar esse código
     def compute_surface_points(self, points) -> List[Point]:
@@ -504,24 +506,139 @@ class BezierSurface(GraphicObject):
 
         return computed_points
 
-    # TODO: Como desenhar a superfície? Quais são as linhas? Dá pra criar uma grade...
-    def draw(
-            self,
-            context: cairo.Context,
-            viewport_transform: Callable[[Point], Point],
-            window_min: Point,
-            window_max: Point,
-            clipping: Clipping,
-    ):
-        last_point, *others = self.normalized_points
-        for next_point in others:
-            new_line = clipping.clip_line(
-                window_max, window_min, last_point, next_point
-            )
-            if new_line:
-                initial_point = viewport_transform(new_line[0])
-                end_point = viewport_transform(new_line[1])
-                super().draw_line(context, initial_point, end_point)
-            last_point = next_point
+    def save_indexes(self):
+        lines = []
+        # Número de pontos por linha (isso depende do número de passos no cálculo)
+        n_points = self._drawing_step + 1
 
-    # TODO: Como exportar para wavefront?
+        for i in range(n_points):
+            start_index = i * n_points
+            for j in range(n_points - 1):
+                # horizontal lines
+                horizontal = start_index + j
+                lines.append([horizontal, horizontal + 1])
+                # vertical lines
+                lines.append([(i + j * n_points), (i + (j + 1) * n_points)])
+
+        # [[a, b], [b, c]]
+        return lines
+
+
+class BSplineSurface(WireframeObject):
+    def __init__(self, name: str, control_points: List[List[Point]], color, drawing_step=15) -> None:
+        self._drawing_step = drawing_step
+        surface_points = self.compute_surface_points(control_points)  # Gera os pontos da superfície
+        line_indexes = self.save_indexes(surface_points)
+        super().__init__(name, surface_points, color, wtype=ObjectType.BSPLINE_SURFACE, lines_indexes=line_indexes)
+
+    # TODO: Avaliar esse código
+    def compute_surface_points(self, control_points) -> List[Point]:
+        surface_points = []
+
+        # Matriz da B-Spline cúbica
+        b_spline_matrix = (1 / 6) * np.array(
+            [[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 0, 3, 0], [1, 4, 1, 0]]
+        )
+
+        delta = 1 / self._drawing_step
+
+        # Matriz de diferenças forward
+        diff_matrix = np.array(
+            [
+                [0, 0, 0, 1],
+                [delta ** 3, delta ** 2, delta, 0],
+                [6 * delta ** 3, 2 * delta ** 2, 0, 0],
+                [6 * delta ** 3, 0, 0, 0],
+            ]
+        )
+
+        # Para cada bloco de 4x4 pontos de controle, computa a superfície
+        for i in range(len(control_points) - 3):
+            for j in range(len(control_points[i]) - 3):
+                # Extrai os pontos de controle para o patch atual
+                g_matrix_x = np.array([[control_points[i + m][j + n].x for n in range(4)] for m in range(4)])
+                g_matrix_y = np.array([[control_points[i + m][j + n].y for n in range(4)] for m in range(4)])
+                g_matrix_z = np.array([[control_points[i + m][j + n].z for n in range(4)] for m in range(4)])
+
+                # Calcula os coeficientes da superfície
+                coeff_matrix_x = b_spline_matrix @ g_matrix_x @ b_spline_matrix.T
+                coeff_matrix_y = b_spline_matrix @ g_matrix_y @ b_spline_matrix.T
+                coeff_matrix_z = b_spline_matrix @ g_matrix_z @ b_spline_matrix.T
+
+                # Matriz de condições iniciais para a direção s
+                initial_conditions_matrix_x_s = diff_matrix @ coeff_matrix_x
+                initial_conditions_matrix_y_s = diff_matrix @ coeff_matrix_y
+                initial_conditions_matrix_z_s = diff_matrix @ coeff_matrix_z
+
+                # Itera sobre o parâmetro s usando forward differences
+                for _ in range(self._drawing_step):
+                    # Salva as condições iniciais para a direção t
+                    new_x_t = initial_conditions_matrix_x_s[0, :].copy()
+                    new_y_t = initial_conditions_matrix_y_s[0, :].copy()
+                    new_z_t = initial_conditions_matrix_z_s[0, :].copy()
+
+                    delta_x_t = initial_conditions_matrix_x_s[1, :].copy()
+                    delta2_x_t = initial_conditions_matrix_x_s[2, :].copy()
+                    delta3_x_t = initial_conditions_matrix_x_s[3, :].copy()
+
+                    delta_y_t = initial_conditions_matrix_y_s[1, :].copy()
+                    delta2_y_t = initial_conditions_matrix_y_s[2, :].copy()
+                    delta3_y_t = initial_conditions_matrix_y_s[3, :].copy()
+
+                    delta_z_t = initial_conditions_matrix_z_s[1, :].copy()
+                    delta2_z_t = initial_conditions_matrix_z_s[2, :].copy()
+                    delta3_z_t = initial_conditions_matrix_z_s[3, :].copy()
+
+                    # Itera sobre o parâmetro t usando forward differences
+                    for _ in range(self._drawing_step):
+                        # Adiciona o ponto diretamente à lista principal
+                        surface_points.append(Point(new_x_t[0], new_y_t[0], new_z_t[0]))
+
+                        # Atualiza as diferenças na direção t
+                        new_x_t[0] += delta_x_t[0]
+                        delta_x_t[0] += delta2_x_t[0]
+                        delta2_x_t[0] += delta3_x_t[0]
+
+                        new_y_t[0] += delta_y_t[0]
+                        delta_y_t[0] += delta2_y_t[0]
+                        delta2_y_t[0] += delta3_y_t[0]
+
+                        new_z_t[0] += delta_z_t[0]
+                        delta_z_t[0] += delta2_z_t[0]
+                        delta2_z_t[0] += delta3_z_t[0]
+
+                    # Atualiza as condições iniciais na direção s
+                    initial_conditions_matrix_x_s[0, :] += initial_conditions_matrix_x_s[1, :]
+                    initial_conditions_matrix_x_s[1, :] += initial_conditions_matrix_x_s[2, :]
+                    initial_conditions_matrix_x_s[2, :] += initial_conditions_matrix_x_s[3, :]
+
+                    initial_conditions_matrix_y_s[0, :] += initial_conditions_matrix_y_s[1, :]
+                    initial_conditions_matrix_y_s[1, :] += initial_conditions_matrix_y_s[2, :]
+                    initial_conditions_matrix_y_s[2, :] += initial_conditions_matrix_y_s[3, :]
+
+                    initial_conditions_matrix_z_s[0, :] += initial_conditions_matrix_z_s[1, :]
+                    initial_conditions_matrix_z_s[1, :] += initial_conditions_matrix_z_s[2, :]
+                    initial_conditions_matrix_z_s[2, :] += initial_conditions_matrix_z_s[3, :]
+
+        return surface_points
+
+    def save_indexes(self, surface_points):
+        lines = []
+        num_points = len(surface_points)
+        # Verifica se o número de pontos forma uma matriz quadrada
+        n_points = int(math.sqrt(num_points))
+
+        for i in range(n_points):
+            for j in range(n_points):
+                # Índice atual do ponto (linha x coluna)
+                idx = i * n_points + j
+
+                # Linhas horizontais: Conecta o ponto atual com o próximo na mesma linha
+                if j < n_points - 1:
+                    lines.append([idx, idx + 1])
+
+                # Linhas verticais: Conecta o ponto atual com o próximo na mesma coluna
+                if i < n_points - 1:
+                    lines.append([idx, (i + 1) * n_points + j])
+
+        return lines

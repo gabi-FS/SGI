@@ -14,6 +14,7 @@ class ObjectType(Enum):
     BEZIER_CURVE = 6
     BSPLINE_CURVE = 7
     BEZIER_SURFACE = 8
+    BSPLINE_SURFACE = 9
 
 
 class TransformationType(Enum):

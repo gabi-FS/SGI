@@ -2,14 +2,8 @@ from typing import Any, Dict, List, Tuple
 
 from gi.repository import Gtk
 
-from globals import (
-    VIEWPORT_SIZE,
-    WINDOW_HEIGHT,
-    WINDOW_WIDTH,
-    LineClippingType,
-    ObjectType,
-    TransformationType,
-)
+from globals import (VIEWPORT_SIZE, WINDOW_HEIGHT, WINDOW_WIDTH,
+                     LineClippingType, ObjectType, TransformationType)
 from gui.main_window import MainWindow
 from system.files import ObjFileHandler
 from system.objects import GraphicObject, Point
@@ -72,7 +66,7 @@ class SGI:
     ) -> int:
         """Função executada ao clicar em 'Adicionar objeto'"""
         try:
-            if ObjectType.BEZIER_SURFACE == object_type:
+            if ObjectType.BEZIER_SURFACE == object_type or ObjectType.BSPLINE_SURFACE == object_type:
                 parsed_input = []  # Matriz de inputs (lista de pontos)
                 lines = input_str.split(";")
                 for line in lines:

@@ -2,20 +2,14 @@ from typing import Any, Dict
 
 import cairo
 import numpy as np
-from cupshelpers.ppds import normalize
 
 from globals import LineClippingType, ObjectType, TransformationType
 from system.basics import Point
 from system.clipping import Clipping
 from system.files import ObjectDescriptor
-from system.objects import (
-    GraphicObject,
-    LineSegmentObject,
-    PointObject,
-    WireframeObject,
-    BezierCurve,
-    BSplineCurve, BezierSurface,
-)
+from system.objects import (BezierCurve, BezierSurface, BSplineCurve,
+                            BSplineSurface, GraphicObject, LineSegmentObject,
+                            PointObject, WireframeObject)
 from system.transform import Transformation
 
 
@@ -132,11 +126,11 @@ class Window(GraphicObject):
         )
 
         matrix = (
-                translate_back_from_origin
-                @ undo_rotation
-                @ translate_amount
-                @ rotate_again
-                @ translate_back_to_origin
+            translate_back_from_origin
+            @ undo_rotation
+            @ translate_amount
+            @ rotate_again
+            @ translate_back_to_origin
         )
 
         self._points = transform.transform_points(self._points, matrix)
@@ -238,7 +232,7 @@ class DisplayFile:
         self._clipping.line_type = new_type
 
     def create_object(self, object_type, name, input_data, color) -> int:
-        if object_type == ObjectType.BEZIER_SURFACE:
+        if object_type == ObjectType.BEZIER_SURFACE or ObjectType.BSPLINE_SURFACE == object_type:
             new_input = []
             n_points = 0
             for line in input_data:
@@ -275,6 +269,8 @@ class DisplayFile:
                 obj = BSplineCurve(name, new_input, color)
             case ObjectType.BEZIER_SURFACE:
                 obj = BezierSurface(name, new_input, color)
+            case ObjectType.BSPLINE_SURFACE:
+                obj = BSplineSurface(name, new_input, color)
         self.add_object(obj)
         self.normalize_object(obj)
         return obj.id
