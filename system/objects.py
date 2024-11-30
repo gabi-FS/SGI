@@ -494,7 +494,7 @@ class BezierSurface(WireframeObject):
 
             for j in range(self._drawing_step + 1):
                 t = j / self._drawing_step
-                t_vector = m @ np.array([[1], [t], [t ** 2], [t ** 3]])  # Vetor de parâmetro transposto
+                t_vector = m.T @ np.array([[1], [t], [t ** 2], [t ** 3]])  # Vetor de parâmetro transposto
 
                 # Calcular coordenadas x, y, z usando a multiplicação das matrizes
                 x_value = s_vector @ geometry_matrix_x @ t_vector
