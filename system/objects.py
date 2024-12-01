@@ -362,6 +362,9 @@ class BezierCurve(Curve):
         m = np.array([[1, 0, 0, 0], [-3, 3, 0, 0], [3, -6, 3, 0], [-1, 3, -3, 1]])
         computed_points = []
 
+        geometry_matrix_x = np.array([[control_points[i].x] for i in range(4)])
+        geometry_matrix_y = np.array([[control_points[i].y] for i in range(4)])
+
         for val in range(self._drawing_step + 1):  # `val` vai de 0 a drawing_step
             t = val / self._drawing_step  # Corrigir t para variar entre 0 e 1
 
@@ -370,22 +373,8 @@ class BezierCurve(Curve):
             t_m_matrix = t_matrix @ m  # Multiplica t pela matriz da curva
 
             # Calcula as coordenadas x e y
-            x_value = t_m_matrix @ np.array(
-                [
-                    [control_points[0].x],
-                    [control_points[1].x],
-                    [control_points[2].x],
-                    [control_points[3].x],
-                ]
-            )
-            y_value = t_m_matrix @ np.array(
-                [
-                    [control_points[0].y],
-                    [control_points[1].y],
-                    [control_points[2].y],
-                    [control_points[3].y],
-                ]
-            )
+            x_value = t_m_matrix @ geometry_matrix_x
+            y_value = t_m_matrix @ geometry_matrix_y
 
             computed_points.append(Point(x_value[0], y_value[0]))
 
