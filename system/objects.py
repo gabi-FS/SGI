@@ -465,7 +465,6 @@ class BezierSurface(WireframeObject):
         surface_points = self.compute_surface_points(control_points)  # Gera os pontos da superfície
         super().__init__(name, surface_points, color, wtype=ObjectType.BEZIER_SURFACE, lines_indexes=line_indexes)
 
-    # TODO: Avaliar esse código
     def compute_surface_points(self, points) -> List[Point]:
         # Matriz de Bézier cúbica
         m = np.array([[1, 0, 0, 0], [-3, 3, 0, 0], [3, -6, 3, 0], [-1, 3, -3, 1]])
@@ -514,24 +513,17 @@ class BezierSurface(WireframeObject):
 
 
 class BSplineSurface(WireframeObject):
-    def __init__(self, name: str, control_points: List[List[Point]], color, drawing_step=15) -> None:
+    def __init__(self, name: str, control_points: List[List[Point]], color, drawing_step=5) -> None:
         self._drawing_step = drawing_step
-        surface_points = self.compute_surface_points(control_points)  # Gera os pontos da superfície
-        line_indexes = self.save_indexes(surface_points)
-        super().__init__(name, surface_points, color, wtype=ObjectType.BSPLINE_SURFACE, lines_indexes=line_indexes)
+        surface_curves = self.compute_surface_curves(control_points)
+        points, lines_indexes = self.curves_to_graphic_obj(surface_curves)
+        super().__init__(name, points, color, wtype=ObjectType.BSPLINE_SURFACE, lines_indexes=lines_indexes)
 
-    # TODO: Avaliar esse código
-    def compute_surface_points(self, control_points) -> List[Point]:
-        surface_points = []
-
+    def compute_surface_curves(self, control_points) -> List[List[Point]]:
         # Matriz da B-Spline cúbica
-        b_spline_matrix = (1 / 6) * np.array(
-            [[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 0, 3, 0], [1, 4, 1, 0]]
-        )
-
+        b_spline_matrix = (1 / 6) * np.array([[-1, 3, -3, 1], [3, -6, 3, 0], [-3, 0, 3, 0], [1, 4, 1, 0]])
         delta = 1 / self._drawing_step
-
-        # Matriz de diferenças forward
+        # Matriz de diferenças forward -> S e T tem o mesmo passo, então são iguais
         diff_matrix = np.array(
             [
                 [0, 0, 0, 1],
@@ -540,7 +532,7 @@ class BSplineSurface(WireframeObject):
                 [6 * delta ** 3, 0, 0, 0],
             ]
         )
-
+        curves = []
         # Para cada bloco de 4x4 pontos de controle, computa a superfície
         for i in range(len(control_points) - 3):
             for j in range(len(control_points[i]) - 3):
@@ -555,79 +547,72 @@ class BSplineSurface(WireframeObject):
                 coeff_matrix_z = b_spline_matrix @ g_matrix_z @ b_spline_matrix.T
 
                 # Matriz de condições iniciais para a direção s
-                initial_conditions_matrix_x_s = diff_matrix @ coeff_matrix_x
-                initial_conditions_matrix_y_s = diff_matrix @ coeff_matrix_y
-                initial_conditions_matrix_z_s = diff_matrix @ coeff_matrix_z
+                dd_matrix_x = diff_matrix @ coeff_matrix_x @ diff_matrix.T
+                dd_matrix_y = diff_matrix @ coeff_matrix_y @ diff_matrix.T
+                dd_matrix_z = diff_matrix @ coeff_matrix_z @ diff_matrix.T
 
-                # Itera sobre o parâmetro s usando forward differences
-                for _ in range(self._drawing_step):
-                    # Salva as condições iniciais para a direção t
-                    new_x_t = initial_conditions_matrix_x_s[0, :].copy()
-                    new_y_t = initial_conditions_matrix_y_s[0, :].copy()
-                    new_z_t = initial_conditions_matrix_z_s[0, :].copy()
+                curves_s = self.draw_curves_in_one_direction(dd_matrix_x, dd_matrix_y, dd_matrix_z)
+                curves.extend(curves_s)
 
-                    delta_x_t = initial_conditions_matrix_x_s[1, :].copy()
-                    delta2_x_t = initial_conditions_matrix_x_s[2, :].copy()
-                    delta3_x_t = initial_conditions_matrix_x_s[3, :].copy()
+                # Para outra direção (transposta)
+                dd_matrix_x = (diff_matrix @ coeff_matrix_x @ diff_matrix.T).T
+                dd_matrix_y = (diff_matrix @ coeff_matrix_y @ diff_matrix.T).T
+                dd_matrix_z = (diff_matrix @ coeff_matrix_z @ diff_matrix.T).T
 
-                    delta_y_t = initial_conditions_matrix_y_s[1, :].copy()
-                    delta2_y_t = initial_conditions_matrix_y_s[2, :].copy()
-                    delta3_y_t = initial_conditions_matrix_y_s[3, :].copy()
+                curves_t = self.draw_curves_in_one_direction(dd_matrix_x, dd_matrix_y, dd_matrix_z)
+                curves.extend(curves_t)
 
-                    delta_z_t = initial_conditions_matrix_z_s[1, :].copy()
-                    delta2_z_t = initial_conditions_matrix_z_s[2, :].copy()
-                    delta3_z_t = initial_conditions_matrix_z_s[3, :].copy()
+        return curves
 
-                    # Itera sobre o parâmetro t usando forward differences
-                    for _ in range(self._drawing_step):
-                        # Adiciona o ponto diretamente à lista principal
-                        surface_points.append(Point(new_x_t[0], new_y_t[0], new_z_t[0]))
+    def update_dd_matrix(self, DD_x, DD_y, DD_z):
+        for i in range(3):
+            for j in range(4):
+                DD_x[i][j] += DD_x[i + 1][j]
+                DD_y[i][j] += DD_y[i + 1][j]
+                DD_z[i][j] += DD_z[i + 1][j]
+        return DD_x, DD_y, DD_z
 
-                        # Atualiza as diferenças na direção t
-                        new_x_t[0] += delta_x_t[0]
-                        delta_x_t[0] += delta2_x_t[0]
-                        delta2_x_t[0] += delta3_x_t[0]
+    def draw_curves_in_one_direction(self, dd_matrix_x, dd_matrix_y, dd_matrix_z):
+        curves = []
+        for _ in range(self._drawing_step):
+            curve = self.draw_curve_foward_differences(
+                dd_matrix_x[0][0], dd_matrix_x[0][1], dd_matrix_x[0][2], dd_matrix_x[0][3],
+                dd_matrix_y[0][0], dd_matrix_y[0][1], dd_matrix_y[0][2], dd_matrix_y[0][3],
+                dd_matrix_z[0][0], dd_matrix_z[0][1], dd_matrix_z[0][2], dd_matrix_z[0][3]
+            )
+            curves.append(curve)
+            dd_matrix_x, dd_matrix_y, dd_matrix_z = self.update_dd_matrix(dd_matrix_x, dd_matrix_y, dd_matrix_z)
+        return curves
 
-                        new_y_t[0] += delta_y_t[0]
-                        delta_y_t[0] += delta2_y_t[0]
-                        delta2_y_t[0] += delta3_y_t[0]
+    # DesenhaCurvaFwdDiff( n, x, Dx, D2x, D3x, y, Dy,D2y, D3y, z, Dz, D2z, D3z)
+    # Mesmo algoritmo utilizado em BSplineCurve
+    def draw_curve_foward_differences(self, x, delta_x, delta2_x, delta3_x,
+                                      y, delta_y, delta2_y, delta3_y,
+                                      z, delta_z, delta2_z, delta3_z):
+        curve_points = [Point(x, y, z)]
+        for _ in range(self._drawing_step):
+            x += delta_x
+            y += delta_y
+            z += delta_z
+            delta_x += delta2_x
+            delta_y += delta2_y
+            delta_z += delta2_z
+            delta2_x += delta3_x
+            delta2_y += delta3_y
+            delta2_z += delta3_z
+            curve_points.append(Point(x, y, z))
+        return curve_points
 
-                        new_z_t[0] += delta_z_t[0]
-                        delta_z_t[0] += delta2_z_t[0]
-                        delta2_z_t[0] += delta3_z_t[0]
-
-                    # Atualiza as condições iniciais na direção s
-                    initial_conditions_matrix_x_s[0, :] += initial_conditions_matrix_x_s[1, :]
-                    initial_conditions_matrix_x_s[1, :] += initial_conditions_matrix_x_s[2, :]
-                    initial_conditions_matrix_x_s[2, :] += initial_conditions_matrix_x_s[3, :]
-
-                    initial_conditions_matrix_y_s[0, :] += initial_conditions_matrix_y_s[1, :]
-                    initial_conditions_matrix_y_s[1, :] += initial_conditions_matrix_y_s[2, :]
-                    initial_conditions_matrix_y_s[2, :] += initial_conditions_matrix_y_s[3, :]
-
-                    initial_conditions_matrix_z_s[0, :] += initial_conditions_matrix_z_s[1, :]
-                    initial_conditions_matrix_z_s[1, :] += initial_conditions_matrix_z_s[2, :]
-                    initial_conditions_matrix_z_s[2, :] += initial_conditions_matrix_z_s[3, :]
-
-        return surface_points
-
-    def save_indexes(self, surface_points):
-        lines = []
-        num_points = len(surface_points)
-        # Verifica se o número de pontos forma uma matriz quadrada
-        n_points = int(math.sqrt(num_points))
-
-        for i in range(n_points):
-            for j in range(n_points):
-                # Índice atual do ponto (linha x coluna)
-                idx = i * n_points + j
-
-                # Linhas horizontais: Conecta o ponto atual com o próximo na mesma linha
-                if j < n_points - 1:
-                    lines.append([idx, idx + 1])
-
-                # Linhas verticais: Conecta o ponto atual com o próximo na mesma coluna
-                if i < n_points - 1:
-                    lines.append([idx, (i + 1) * n_points + j])
-
-        return lines
+    def curves_to_graphic_obj(self, curves: List[List[Point]]):
+        points = []
+        lines_indexes = []
+        point_to_index = {}
+        for curve in curves:
+            line_indexes = []
+            for point in curve:
+                if point not in point_to_index:
+                    point_to_index[point] = len(points)
+                    points.append(point)
+                line_indexes.append(point_to_index[point])
+            lines_indexes.append(line_indexes)
+        return points, lines_indexes
