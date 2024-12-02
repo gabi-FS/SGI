@@ -145,10 +145,11 @@ class PointObject(GraphicObject):
             window_max: Point,
             clipping: Clipping,
     ):
-        if clipping.clip_point(window_max, window_min, self._normalized_points[0]):
-            new_point = viewport_transform(self._normalized_points[0])
-            second_point = Point(new_point.x + 1, new_point.y + 1)
-            super().draw_line(context, new_point, second_point)
+        if len(self._normalized_points) != 0:
+            if clipping.clip_point(window_max, window_min, self._normalized_points[0]):
+                new_point = viewport_transform(self._normalized_points[0])
+                second_point = Point(new_point.x + 1, new_point.y + 1)
+                super().draw_line(context, new_point, second_point)
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = super().get_descriptor()
@@ -169,16 +170,17 @@ class LineSegmentObject(GraphicObject):
             window_max: Point,
             clipping: Clipping,
     ):
-        new_line = clipping.clip_line(
-            window_max,
-            window_min,
-            self._normalized_points[0],
-            self._normalized_points[1],
-        )
-        if new_line:
-            initial_point = viewport_transform(new_line[0])
-            end_point = viewport_transform(new_line[1])
-            super().draw_line(context, initial_point, end_point)
+        if len(self.normalized_points) == 2:
+            new_line = clipping.clip_line(
+                window_max,
+                window_min,
+                self._normalized_points[0],
+                self._normalized_points[1],
+            )
+            if new_line:
+                initial_point = viewport_transform(new_line[0])
+                end_point = viewport_transform(new_line[1])
+                super().draw_line(context, initial_point, end_point)
 
     def get_descriptor(self) -> ObjectDescriptor:
         descriptor = super().get_descriptor()
@@ -259,7 +261,7 @@ class WireframeObject(GraphicObject):
     ):
 
         point = self._normalized_points[index]
-        if clipping.clip_point(window_max, window_min, point):
+        if point and clipping.clip_point(window_max, window_min, point):
             new_point = viewport_transform(point)
             super().draw_line(
                 context, new_point, Point(new_point.x + 1, new_point.y + 1)
@@ -276,15 +278,17 @@ class WireframeObject(GraphicObject):
     ):
         last_index, *others = line_indexes
         for i in others:
-            point1 = self.normalized_points[last_index]
-            point2 = self.normalized_points[i]
-            last_index = i
+            len_normalized = len(self.normalized_points)
+            if len_normalized > last_index and len_normalized > i:
+                point1 = self.normalized_points[last_index]
+                point2 = self.normalized_points[i]
+                last_index = i
 
-            new_line = clipping.clip_line(window_max, window_min, point1, point2)
-            if new_line:
-                initial_point = viewport_transform(new_line[0])
-                end_point = viewport_transform(new_line[1])
-                super().draw_line(context, initial_point, end_point)
+                new_line = clipping.clip_line(window_max, window_min, point1, point2)
+                if new_line:
+                    initial_point = viewport_transform(new_line[0])
+                    end_point = viewport_transform(new_line[1])
+                    super().draw_line(context, initial_point, end_point)
 
     def _draw_face(
             self,
@@ -296,7 +300,11 @@ class WireframeObject(GraphicObject):
             clipping: Clipping,
     ):
         context.set_source_rgb(*self._color)
-        normalized_face = [self.normalized_points[i] for i in face_indexes]
+        normalized_face = []
+        len_normalized_points = len(self.normalized_points)
+        for i in face_indexes:
+            if len_normalized_points > i:
+                normalized_face.append(self.normalized_points[i])
         new_lines = clipping.clip_polygon(normalized_face, window_max, window_min)
 
         if new_lines:

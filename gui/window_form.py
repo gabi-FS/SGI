@@ -34,13 +34,13 @@ class WindowForm:
         menu_box.add_element(Gtk.Separator())
 
     def connect_panning_buttons(
-        self,
-        on_up: Callable[[], None],
-        on_left: Callable[[], None],
-        on_right: Callable[[], None],
-        on_down: Callable[[], None],
-        on_front: Callable[[], None],
-        on_back: Callable[[], None],
+            self,
+            on_up: Callable[[], None],
+            on_left: Callable[[], None],
+            on_right: Callable[[], None],
+            on_down: Callable[[], None],
+            on_front: Callable[[], None],
+            on_back: Callable[[], None],
     ):
         self._panning_box.external_on_button_up = on_up
         self._panning_box.external_on_button_left = on_left
@@ -50,7 +50,7 @@ class WindowForm:
         self._panning_box.external_on_button_back = on_back
 
     def connect_zoom_buttons(
-        self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
+            self, zoom_in: Callable[[], None], zoom_out: Callable[[], None]
     ):
         self._zoom_box.external_zoom_in = zoom_in
         self._zoom_box.external_zoom_out = zoom_out
@@ -136,11 +136,15 @@ class PanningBox:
         grid.attach(self.button_left, 0, 1, 1, 1)
         grid.attach(self.button_right, 2, 1, 1, 1)
         grid.attach(self.button_down, 1, 2, 1, 1)
-        grid.attach(self.button_front, 3, 0, 1, 1)  # Front button in column 3, row 0
-        grid.attach(self.button_back, 3, 1, 1, 1)  # Back button in column 3, row 1
+
+        new_grid = Gtk.Grid()
+        new_grid.attach(self.button_front, 0, 0, 1, 1)
+        new_grid.attach(self.button_back, 1, 0, 1, 1)
+        new_grid.set_column_spacing(10)
 
         self.element.pack_start(panning_label, False, False, 0)
         self.element.pack_start(grid, False, False, 0)
+        self.element.pack_start(new_grid, False, False, 0)
 
     def on_button_up(self, _):
         if self.external_on_button_up:
