@@ -6,10 +6,11 @@ class Point:
     _y: float
     _z: float
 
-    def __init__(self, x: float, y: float, z: float = 0.0) -> None:
+    def __init__(self, x: float, y: float, z: float = 0.0, ignore=False) -> None:
         self._x = x
         self._y = y
         self._z = z
+        self.ignore = ignore
 
     @property
     def x(self):
@@ -86,7 +87,7 @@ class Point:
     def size(cls, point1: "Point", point2: "Point") -> float:
         """Size of 3D vector between two points."""
         return (
-            (point1.x - point2.x) ** 2
-            + (point1.y - point2.y) ** 2
-            + (point1.z - point2.z) ** 2
+                (point1.x - point2.x) ** 2
+                + (point1.y - point2.y) ** 2
+                + (point1.z - point2.z) ** 2
         ) ** 0.5

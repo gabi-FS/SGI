@@ -282,14 +282,9 @@ class DisplayFile:
     @staticmethod
     def project_point(point, cop_distance=1):
         """Projeção em perspectiva"""
+        if point.z == 0 or point.z <= 0:
+            return Point(0, 0, 0, True)
 
-        if point.z == 0:
-            return None  # No momento ignorar por conta da divisão por zero
-        if point.z <= 0:
-            return None
-        # print("PROJETANDO:")
-        # print("\n".join([str(x) for x in point]))
-        # print()
         return Point(point.x * cop_distance / point.z, point.y * cop_distance / point.z)
 
     def normalize_object(self, obj: GraphicObject):
