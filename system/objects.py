@@ -513,7 +513,7 @@ class BezierSurface(WireframeObject):
 
 
 class BSplineSurface(WireframeObject):
-    def __init__(self, name: str, control_points: List[List[Point]], color, drawing_step=5) -> None:
+    def __init__(self, name: str, control_points: List[List[Point]], color, drawing_step=6) -> None:
         self._drawing_step = drawing_step
         surface_curves = self.compute_surface_curves(control_points)
         points, lines_indexes = self.curves_to_graphic_obj(surface_curves)
@@ -582,6 +582,14 @@ class BSplineSurface(WireframeObject):
             )
             curves.append(curve)
             dd_matrix_x, dd_matrix_y, dd_matrix_z = self.update_dd_matrix(dd_matrix_x, dd_matrix_y, dd_matrix_z)
+
+        # Última curva necessária
+        curve = self.draw_curve_foward_differences(
+            dd_matrix_x[0][0], dd_matrix_x[0][1], dd_matrix_x[0][2], dd_matrix_x[0][3],
+            dd_matrix_y[0][0], dd_matrix_y[0][1], dd_matrix_y[0][2], dd_matrix_y[0][3],
+            dd_matrix_z[0][0], dd_matrix_z[0][1], dd_matrix_z[0][2], dd_matrix_z[0][3]
+        )
+        curves.append(curve)
         return curves
 
     # DesenhaCurvaFwdDiff( n, x, Dx, D2x, D3x, y, Dy,D2y, D3y, z, Dz, D2z, D3z)
